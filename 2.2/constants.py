@@ -15,7 +15,10 @@ __DEFAULT_HEIGHT = 7
 __DEFAULT_WIDTH = 7
 
 # The types of things which a Gomoku board tile may contain
-__TILE_TYPES = ['RED_TILE', 'BLUE_TILE', 'BLANK_TILE']
+__RED_TILE = 1
+__BLUE_TILE = -1
+__BLANK_TILE = 0
+__TILE_TYPES = [__RED_TILE, __BLUE_TILE, __BLANK_TILE]
 
 # Getter functions for the aforementioned constants
 def HEIGHT_MIN(): return __HEIGHT_MIN
