@@ -1,3 +1,4 @@
+from copy import deepcopy
 from constants import *
 
 """ 
@@ -7,7 +8,6 @@ A Gomoku object is a data structure for
 representing a board of a game of Gomoku.
 """
 __author__ = 'Griffin A. Tucker'
-__version__ = '1.0'
 __date__ = '2_19_18'
 
 class Gomoku(object):
@@ -31,13 +31,14 @@ class Gomoku(object):
         
         # if instance is of Gomoku class, make a copy
         if isinstance(arg, self.__class__):
-            self.__dict__ = arg.__dict__.copy()
+            self.__dict__ = deepcopy(arg.__dict__)
         # otherwise define a new object 
         else:
             self.__board_space = [[BLANK_TILE() for x in range(arg)] for y in range(h)]
+            self.__blanks = h*w
             self.__width = arg
             self.__height = h
-        
+
     def set_tile(self, x, y, tile_type):
         """ 
         set_tile(int, int, t in constants.TILE_TYPES()) -> int
@@ -62,13 +63,23 @@ class Gomoku(object):
         elif y >= self.__height or y < HEIGHT_MIN():
             print('Attempt to access invalid y coordinate; tile not set.')
             return 0
+
         # check if setting a known tile type
         if tile_type not in TILE_TYPES():
             print('Invalid tile type; tile not set.')
             return 0
-        # set the tile to the value of tile_type
-        self.__board_space[x][y] = tile_type;
-        return 1
+
+        # if the tile is blank, set the tile to tile_type
+        # and decriment the blanks counter, otherwise, 
+        # send an error. Can't plance down more than one 
+        # stone on a tile. 
+        if __board_space[x][y] != BLANK_TILE():
+            print('Cant change an occupied tile; tile not set.')
+            return 0
+        else:
+            self.__board_space[x][y] = tile_type;
+            self.__blanks -= 1
+            return 1
     
     def get_tile(self, x, y):
         """ 
@@ -95,13 +106,32 @@ class Gomoku(object):
             return None
         return self.__board_space[x][y]
 
+    def is_full(self):
+        """ 
+        is_full() -> int
+
+        Checks if the Gomoku board has any remaining
+        blank spaces.
+
+        Keyword arguments:
+        None
+
+        Return 1 if there are no more blank spaces on
+        the board; otherwise, return 0.
+        """
+        if self.__blanks <= 0:
+            return 1
+        else:
+            return 0
+
+class __Tile(object):
+
 """ Code below here is to be exclusively used for 
 testing the Gomoku class.
 """  
 if __name__ == '__main__': 
     new_board = Gomoku(5,5)
-    print(new_board.get_tile(1,2))
-    print(new_board.get_tile(5,6))
-    new_board.set_tile(1,2,RED_TILE())
     copy_board = Gomoku(new_board)
+    new_board.set_tile(1,2,RED_TILE())
     print(new_board.get_tile(1,2))
+    print(copy_board.get_tile(1,2))
