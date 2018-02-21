@@ -281,6 +281,9 @@ class Tile(object):
             if k == 'SW' and neighbors['SW'].get_tile_type() == tile_type: 
                 max_friends.append(l(neighbors['SW'])) 
 
+        for v in max_friends:
+            print(v)
+
         # If any of the tile's friend sets length >= the length of
         # a winning row of friends, return win; otherwise return not_win
         if len(max_friends) > 0 and max(max_friends) >= WINNING_ROW_SIZE(): return 1
