@@ -20,6 +20,9 @@ __BLUE_TILE = -1
 __BLANK_TILE = 0
 __TILE_TYPES = [__RED_TILE, __BLUE_TILE, __BLANK_TILE]
 
+# The winning condition for the Gomoku game
+__WINNING_ROW_SIZE = 5
+
 # Getter functions for the aforementioned constants
 def HEIGHT_MIN(): return __HEIGHT_MIN
 def WIDTH_MIN(): return __WIDTH_MIN
@@ -29,3 +32,4 @@ def TILE_TYPES(): return __TILE_TYPES
 def RED_TILE(): return __TILE_TYPES[0]
 def BLUE_TILE(): return __TILE_TYPES[1]
 def BLANK_TILE(): return __TILE_TYPES[2]
+def WINNING_ROW_SIZE(): return __WINNING_ROW_SIZE

@@ -34,8 +34,8 @@ class Gomoku(object):
             self.__dict__ = deepcopy(arg.__dict__)
         # otherwise define a new object 
         else:
-            self.__board_space = [[__Tile() for x in range(arg)] for y in range(h)]
-            self.__blanks = h*w
+            self.__board_space = [[Tile() for x in range(arg)] for y in range(h)]
+            self.__blanks = h*arg
             self.__width = arg
             self.__height = h
 
@@ -53,7 +53,9 @@ class Gomoku(object):
                      must be contained within the array 
                      contants.TILE_TYPES())
 
-        Return 1 if the tile was set successfully; 0 otherwise.  
+        Return 1 if setting the tile won the game for red.
+        Returns -1 if setting the tile won the game for blue.
+        Returns 0 if setting the tile did nothing.  
         """
 
         # check if we are accessing within range
@@ -67,7 +69,27 @@ class Gomoku(object):
         # Adjust the type of tile and decriment the blanks counter
         self.__board_space[x][y].change_type(tile_type)
         self.__blanks -= 1
-        return 1
+
+        # Gather the neighbors of the tile
+        neighbors = {}
+        if (x-1) >= WIDTH_MIN():  neighbors['W'] = self.__board_space[x-1][y]
+        if (y-1) >= HEIGHT_MIN(): neighbors['S'] = self.__board_space[x][y-1]
+        if (x+1) < self.__width:  neighbors['E'] = self.__board_space[x+1][y]
+        if (y+1) < self.__height: neighbors['N'] = self.__board_space[x][y+1]
+        if (x-1) >= WIDTH_MIN() and (y+1) < self.__height: 
+            neighbors['NW'] = self.__board_space[x-1][y+1]
+        if (x-1) >= WIDTH_MIN() and (y-1) >= HEIGHT_MIN(): 
+            neighbors['SW'] = self.__board_space[x-1][y-1]
+        if (x+1) < self.__width and (y+1) < self.__height: 
+            neighbors['NE'] = self.__board_space[x+1][y+1]
+        if (x+1) < self.__width and (y-1) >= HEIGHT_MIN(): 
+            neighbors['SE'] = self.__board_space[x+1][y-1]
+
+        # check for win condition
+        if self.__board_space[x][y].find_friends(neighbors) == 1:
+            if tile_type == RED_TILE(): return 1
+            else: return -1
+        else: return 0
     
     def get_tile(self, x, y):
         """ 
@@ -111,8 +133,26 @@ class Gomoku(object):
             return 1
         else:
             return 0
+    
+    def print_board(self):
+        """
+        print_board() -> int
 
-class __Tile(object):
+        Iterates through the board space and prints
+        the data to console. Useful for testing.
+
+        Keyword arguments:
+        None
+
+        Returns 1 is successful. Otherwise returns 0.
+        """
+
+        for x in range(0, self.__width):
+            for y in range(0, self.__height):
+                print(self.__board_space[x][y].get_tile_type(), end='')
+            print('\n', end='')
+
+class Tile(object):
 
     def __init__(self):
         """ 
@@ -127,10 +167,10 @@ class __Tile(object):
         Return a __Tile object. 
         """
         self.__tile_type = BLANK_TILE()
-        self.__vertical_friends = Set([self])
-        self.__horizontal_friends = Set([self])
-        self.__rightdiag_friends = Set([self])
-        self.__leftdiag_friends = Set([self])
+        self.__vertical_friends = set([self])
+        self.__horizontal_friends = set([self])
+        self.__rightdiag_friends = set([self])
+        self.__leftdiag_friends = set([self])
 
     def get_tile_type(self):
         """ 
@@ -173,7 +213,7 @@ class __Tile(object):
 
         # Set the new tile type if it is valid, otherwise fail
         if tile_type in TILE_TYPES():
-            self.tile_type = tile_type
+            self.__tile_type = tile_type
             return 1
         else: 
             return 0
@@ -211,6 +251,8 @@ class __Tile(object):
 
         # max_friends stores the lengths of all created friend sets
         max_friends = []
+        # tile_tyle is the type of the tile being evaluated
+        tile_type = self.__tile_type
 
         # create lambda functions for calculating horizontile, vertical, right-
         # diagonal, and left-diagonal friend sets.
@@ -221,17 +263,27 @@ class __Tile(object):
 
         # Check the neighbors of the tile for friendly pieces.
         # Union the friend sets of the tile is there are friends.
-        if (NW = neighbors[NW()].get_tile_type()) == tile_type: max_friends.append(r(SE)) 
-        if (N = neighbors[N()].get_tile_type()) == tile_type: max_friends.append(v(N)) 
-        if (S = neighbors[S()].get_tile_type()) == tile_type: max_friends.append(v(S)) 
-        if (W = neighbors[W()].get_tile_type()) == tile_type: max_friends.append(h(W)) 
-        if (E = neighbors[E()].get_tile_type()) == tile_type: max_friends.append(h(E)) 
-        if (NE = neighbors[NE()].get_tile_type()) == tile_type: max_friends.append(l(NE)) 
-        if (SW = neighbors[SW()].get_tile_type()) == tile_type: max_friends.append(l(SW)) 
+        for k in neighbors.keys():
+            if k == 'SE' and neighbors['SE'].get_tile_type() == tile_type: 
+                max_friends.append(r(neighbors['SE']))
+            if k == 'NW' and neighbors['NW'].get_tile_type() == tile_type: 
+                max_friends.append(r(neighbors['NW'])) 
+            if k == 'N' and neighbors['N'].get_tile_type() == tile_type: 
+                max_friends.append(v(neighbors['N'])) 
+            if k == 'S' and neighbors['S'].get_tile_type() == tile_type: 
+                max_friends.append(v(neighbors['S'])) 
+            if k == 'W' and neighbors['W'].get_tile_type() == tile_type: 
+                max_friends.append(h(neighbors['W'])) 
+            if k == 'E' and neighbors['E'].get_tile_type() == tile_type: 
+                max_friends.append(h(neighbors['E'])) 
+            if k == 'NE' and neighbors['NE'].get_tile_type() == tile_type: 
+                max_friends.append(l(neighbors['NE'])) 
+            if k == 'SW' and neighbors['SW'].get_tile_type() == tile_type: 
+                max_friends.append(l(neighbors['SW'])) 
 
         # If any of the tile's friend sets length >= the length of
         # a winning row of friends, return win; otherwise return not_win
-        if max(max_friends) >= WINNING_ROW(): return 1
+        if len(max_friends) > 0 and max(max_friends) >= WINNING_ROW_SIZE(): return 1
         else: return 0
 
 """ Code below here is to be exclusively used for 
@@ -241,5 +293,8 @@ if __name__ == '__main__':
     new_board = Gomoku(5,5)
     copy_board = Gomoku(new_board)
     new_board.set_tile(1,2,RED_TILE())
-    print(new_board.get_tile(1,2))
-    print(copy_board.get_tile(1,2))
+    new_board.set_tile(0,2,RED_TILE())
+    new_board.set_tile(2,2,RED_TILE())
+    new_board.set_tile(3,2,RED_TILE())
+    print(new_board.set_tile(4,2,RED_TILE()))
+    new_board.print_board()
