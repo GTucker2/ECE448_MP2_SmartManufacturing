@@ -1,6 +1,8 @@
 ## author : Michael Racine 
 ## date: 2/21/18
 
+import queue
+
 #creating distance dictionaries, don't need these yet so they are commented out. They work like arrays but the index is the name of the 
 #factory
 #start_dist  = {'A':0,    'B':0,   'C':0,   'D':0,   'E':0}
@@ -22,3 +24,49 @@ class State:
     def __init__(self, name, dists):
         self.loc = name
         self.distance_to = dists
+
+    #finds the path with the least number of stops
+    #param:  start-starting  state for the search
+    #return: string of path taken
+    def search_smallest_stops(start):
+        ret_val = []
+
+
+        return
+
+    #finds the path with the least number of stops
+    #param:  start-starting  state for the search
+    #return: string of path taken
+    def search_shortest_dist(start):
+        ret_val = []
+        return
+
+    #histogram to find the most common component
+    #param:  comps-list of the next components to check
+    #return: component as a string
+    def stop_hist(comps):
+        best = 'A'
+        if(comps.count(best) < comps.count('B')):
+            best='B'
+        if(comps.count(best) < comps.count('C')):
+            best='C'
+        if(comps.count(best) < comps.count('D')):
+            best='D'
+        if(comps.count(best) < comps.count('E')):
+            best='E'
+        return best
+
+    #histogram to find the shortest distance to a widget
+    #param:  dist-list of distances to other components
+    #return: component as a string
+    def dist_hist(dist):
+        short = 'A'
+        if(dist[short] > dist['B']):
+            short = 'B'
+        if(dist[short] > dist['C']):
+            short = 'C'
+        if(dist[short] > dist['D']):
+            short = 'D'
+        if(dist[short] > dist['E']):
+            short = 'E'
+        return short
