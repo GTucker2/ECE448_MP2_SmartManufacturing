@@ -1,3 +1,16 @@
+from constants import *
+
+""" 
+This module defines the Agent object.
+
+An agent object may be used to play a 
+number of game problems. This module 
+defines a series of Agent types, i.e.
+Reflex, Minimax, and AlphaBeta. 
+"""
+__author__ = 'Griffin A. Tucker'
+__date__ = '3_6_18'
+
 class Agent():
     def __init__(self, tile_type, game_space):
         self.__tile_type = tile_type 
