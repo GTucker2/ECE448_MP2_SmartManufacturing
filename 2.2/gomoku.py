@@ -291,12 +291,6 @@ class Tile(object):
                 self.__leftdiag_friends = self.__leftdiag_friends.union(neighbors['SW'].__leftdiag_friends)
                 max_friends.append(len(self.__leftdiag_friends)) 
 
-        #if len(max_friends) == 0: 
-        #    print(0) 
-        #else:
-        #    for v in max_friends:
-        #        print(v)
-
         # If any of the tile's friend sets length >= the length of
         # a winning row of friends, return win; otherwise return not_win
         if len(max_friends) > 0 and max(max_friends) >= WINNING_ROW_SIZE(): return 1

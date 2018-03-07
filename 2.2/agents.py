@@ -1,3 +1,5 @@
+from abc import ABCMeta, abstractmethod
+from gomoku import Gomoku
 from constants import *
 
 """ 
@@ -11,20 +13,79 @@ Reflex, Minimax, and AlphaBeta.
 __author__ = 'Griffin A. Tucker'
 __date__ = '3_6_18'
 
-class Agent():
-    def __init__(self, tile_type, game_space):
-        self.__tile_type = tile_type 
+class Agent(metaclass=ABCMeta):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def __init__(self, affinity, game_type, game_space, opponent=None):
+        self.__affinity   = affinity
+        self.__game_type  = game_type
         self.__game_space = game_space
-        self.__nodes_expanded = 0
-    def __str__():
-        print num expanded and type of agent
+        self.__in_play    = False
+        self.__opponent   = opponent
+        if(opponent is not None): self.__opponent.set_opponent(self)
+
+    @abstractmethod 
+    def __str__(self): pass
+        #print num expanded and type of agent
+    
+    @abstractmethod
+    def make_move(self): pass
+
+    def get_play_status(self): return self.__in_play
+    def get_game_type(self): return self.__game_type
+    def get_affinity(self): return self.__affinity 
+    def get_game_space(self): return self.__game_space
+    def get_opponent(self): return self.__opponent
+
+    def set_play_status(self, status): self.__in_play = status
+    def set_opponent(self, opponent): self.__opponent = opponent
+
 
 class Reflex(Agent):
-    def __init__(self, tile_type, game_space):
-        super().__init__(self, tile_type, game_space)
+    def __init__(self, affinity, game_type, game_space, opponent=None):
+        super().__init__(affinity, game_type, game_space, opponent)
         self.__winning_blocks = set( )
+
+    def __str__(self):
+        pass
+
+    def make_move(self):
+
+        # If the agent is starting a game, make an 
+        # initial move
+        if self.get_play_status() == False: self.initial_move()
         
-    def victory_check(self):
+        # Check wheather the the agent side is going to 
+        # win by making one move, make the move
+        #if self.victory_check_self() == 1: pass
+
+        # Check if the oponent has a compromising move 
+        #elif self.victory_check_oponent() == 1: pass
+
+        # Check for best possible way to make an 
+        # adventageous move
+        else: pass
+
+    def initial_move(self):
+
+        # Make the first move based on the game we
+        # are currently playing, otherwise return
+        if isinstance(self.get_game_space(), Gomoku):
+
+            # play one stone in the bottom left-hand corner
+            self.get_game_space().set_tile(6,0,self.get_affinity())
+
+            # the agents are now in play 
+            self.set_play_status(True)
+            self.get_opponent().set_play_status(True)
+
+        else:
+            print('Unknown game. Returning')
+            return None
+
+        
+    '''def victory_check(self):
         """
         victory_check() -> (int,int)
         
@@ -41,8 +102,9 @@ class Reflex(Agent):
         else:
             print('Unknown game. Returning')
             return None
+    '''
         
-class MiniMax(Agent):
+'''class MiniMax(Agent):
     def __init__(self, tile_type, game_space, search_depth):
         super().__init__(self, tile_type, game_space)
         self.__search_depth = search_depth
@@ -58,4 +120,13 @@ class Block(object):
             self.__tiles.append(tile)
             if tile.get_tile_type == tile_type:
                 self.__num_occupied += 1
-        
+'''
+
+""" Code below here is to be exclusively used for 
+testing the Agent class and its subclasses.
+""" 
+if __name__ == '__main__': 
+    new_game = Gomoku(7,7)
+    blue_reflex = Reflex(BLUE_TILE(), Gomoku, new_game)
+    red_reflex = Reflex(RED_TILE(), Gomoku, new_game, blue_reflex)
+    blue_reflex.make_move()
