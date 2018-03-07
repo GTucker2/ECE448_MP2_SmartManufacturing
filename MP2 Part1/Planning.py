@@ -2,71 +2,106 @@
 ## date: 2/21/18
 
 import queue
-
-#creating distance dictionaries, don't need these yet so they are commented out. They work like arrays but the index is the name of the 
-#factory
-#start_dist  = {'A':0,    'B':0,   'C':0,   'D':0,   'E':0}
-#distances_A = {'A':0,    'B':1064,'C':673, 'D':1401,'E':277}
-#distances_B = {'A':1064, 'B':0,   'C':958, 'D':1934,'E':337}
-#distances_C = {'A':673,  'B':958, 'C':0,   'D':1001,'E':399}
-#distances_D = {'A':1401, 'B':1934,'C':1001,'D':0,   'E':387}
-#distances_E = {'A':277,  'B':337, 'C':399, 'D':387, 'E':0}
-#string to hold the solution of the search
-solution = ''
+import Widget
+import PlanTree
 
 #class that creates the states to go between. 
 class State:
     #creates a State object
     #param:  self
-    #        name: the name of the state as a string
-    #        dists: distance to the other states as an array of ints
+    #        name:    the name of the state as a string
+    #        dists:   distance to the other states as an array of ints
+    #        widgets: The current widgets; this will be a list/dictionary of the widget object
     #return: State object
-    def __init__(self, name, dists):
+    def __init__(self, name, dists, widgets):
         self.loc = name
         self.distance_to = dists
+        self.vars = widgets
+        self.all_done = False
 
-    #finds the path with the least number of stops
-    #param:  start-starting  state for the search
-    #return: string of path taken
-    def search_smallest_stops(start):
-        ret_val = []
+#finds the path with the least number of stops
+#param:  start-starting  state for the search
+#return: string of path taken
+def search_smallest_stops(root):
+    # Check if the tree is valid. If it is not, return 0.
+    if root is None: return 'root is null: Function Failed'
+    else: root.visited_from = "root"
+    # Declare a queue and enqueue the starting node.
+    q = queue.Queue()         
+    q.enqueue(root)    
 
+    # Declare a string to count factory stops
+    # Set it to blank space.
+    solution = ''
 
-        return
+    # While the q is not empty, get the next node on the queue
+    # and check for the goal. If at the goal, copy the successful
+    # path to the array of mazedata and then return 1. Else,
+    # expand the node to the queue. 
+    while q.size() > 0:       
+        cur = q.dequeue() 
+        if cur.traversed is False:
+            #TODO: create search 
+            cur.traversed = True
+    # Return the failed because solution was not found
+    solution = 'FAILED'
+    return solution
 
-    #finds the path with the least number of stops
-    #param:  start-starting  state for the search
-    #return: string of path taken
-    def search_shortest_dist(start):
-        ret_val = []
-        return
+#finds the path with the least number of stops
+#param:  start-starting  state for the search
+#return: string of path taken
+def search_shortest_dist(start):
+    # Check if the tree is valid. If it is not, return 0.
+    if root is None: return 'root is null: Function Failed'
+    else: root.visited_from = "root"
+    # Declare a queue and enqueue the starting node.
+    q = queue.Queue()         
+    q.enqueue(root)    
 
-    #histogram to find the most common component
-    #param:  comps-list of the next components to check
-    #return: component as a string
-    def stop_hist(comps):
-        best = 'A'
-        if(comps.count(best) < comps.count('B')):
-            best='B'
-        if(comps.count(best) < comps.count('C')):
-            best='C'
-        if(comps.count(best) < comps.count('D')):
-            best='D'
-        if(comps.count(best) < comps.count('E')):
-            best='E'
-        return best
+    # Declare a string to count factory stops and int to count miles traversed
+    # Set it to blank space.
+    solution = ''
+    miles_traveled = 0
+    # While the q is not empty, get the next node on the queue
+    # and check for the goal. If at the goal, copy the successful
+    # path to the array of mazedata and then return 1. Else,
+    # expand the node to the queue. 
+    while q.size() > 0:       
+        cur = q.dequeue() 
+        if cur.traversed is False:
+            #TODO: create search 
+            cur.traversed = True
+    # Return the failed because solution was not found
+    solution = 'FAILED'
+    miles_traveled = -1
+    return (solution, miles_traveled)
 
-    #histogram to find the shortest distance to a widget
-    #param:  dist-list of distances to other components
-    #return: component as a string
-    def dist_hist(dist):
-        short = 'A'
-        if(dist[short] > dist['B']):
-            short = 'B'
-        if(dist[short] > dist['C']):
-            short = 'C'
-        if(dist[short] > dist['D']):
-            short = 'D'
-        if(dist[short] > dist['E']):
-            short = 'E'
-        return short
+#histogram to find the most common component
+#param:  comps-list of the next components to check
+#return: component as a string
+def stop_hist(comps):
+    best = 'A'
+    if(comps.count(best) < comps.count('B')):
+        best='B'
+    if(comps.count(best) < comps.count('C')):
+        best='C'
+    if(comps.count(best) < comps.count('D')):
+        best='D'
+    if(comps.count(best) < comps.count('E')):
+        best='E'
+    return best
+
+#histogram to find the shortest distance to a widget
+#param:  dist-list of distances to other components
+#return: component as a string
+def dist_hist(dist):
+    short = 'A'
+    if(dist[short] > dist['B']):
+        short = 'B'
+    if(dist[short] > dist['C']):
+        short = 'C'
+    if(dist[short] > dist['D']):
+        short = 'D'
+    if(dist[short] > dist['E']):
+        short = 'E'
+    return short
