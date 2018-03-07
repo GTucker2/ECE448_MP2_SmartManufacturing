@@ -20,12 +20,12 @@ class State:
         self.all_done = False
 
 #finds the path with the least number of stops
-#param:  start-starting  state for the search
+#param:  start: starting  state for the search
 #return: string of path taken
-def search_smallest_stops(root):
-    # Check if the tree is valid. If it is not, return 0.
-    if root is None: return 'root is null: Function Failed'
-    else: root.visited_from = "root"
+def search_smallest_stops(graph, start, end):
+    # Check if the graph is valid. If it is not, return error string.
+    if graph is None: return 'graph is null: Function Failed'
+    
     # Declare a queue and enqueue the starting node.
     q = queue.Queue()         
     q.enqueue(root)    
@@ -33,6 +33,7 @@ def search_smallest_stops(root):
     # Declare a string to count factory stops
     # Set it to blank space.
     solution = ''
+    nodes_expanded = 0
 
     # While the q is not empty, get the next node on the queue
     # and check for the goal. If at the goal, copy the successful
@@ -45,15 +46,14 @@ def search_smallest_stops(root):
             cur.traversed = True
     # Return the failed because solution was not found
     solution = 'FAILED'
-    return solution
+    return (solution, nodes_expanded)
 
 #finds the path with the least number of stops
-#param:  start-starting  state for the search
+#param:  start: starting  state for the search
 #return: string of path taken
-def search_shortest_dist(start):
-    # Check if the tree is valid. If it is not, return 0.
-    if root is None: return 'root is null: Function Failed'
-    else: root.visited_from = "root"
+def search_shortest_dist(graph, start, end):
+    # Check if the graph is valid. If it is not, return error string.
+    if graph is None: return 'graph is null: Function Failed'
     # Declare a queue and enqueue the starting node.
     q = queue.Queue()         
     q.enqueue(root)    
@@ -62,6 +62,7 @@ def search_shortest_dist(start):
     # Set it to blank space.
     solution = ''
     miles_traveled = 0
+    nodes_expanded = 0
     # While the q is not empty, get the next node on the queue
     # and check for the goal. If at the goal, copy the successful
     # path to the array of mazedata and then return 1. Else,
@@ -74,10 +75,10 @@ def search_shortest_dist(start):
     # Return the failed because solution was not found
     solution = 'FAILED'
     miles_traveled = -1
-    return (solution, miles_traveled)
+    return (solution, miles_traveled, nodes_expanded)
 
 #histogram to find the most common component
-#param:  comps-list of the next components to check
+#param:  comps: list of the next components to check
 #return: component as a string
 def stop_hist(comps):
     best = 'A'
@@ -92,7 +93,7 @@ def stop_hist(comps):
     return best
 
 #histogram to find the shortest distance to a widget
-#param:  dist-list of distances to other components
+#param:  dist: list of distances to other components
 #return: component as a string
 def dist_hist(dist):
     short = 'A'

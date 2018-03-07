@@ -22,7 +22,7 @@ class Widget:
     def add_comp(self, comp):
         #widget already finished return so it isn't modified
         if self.done:
-            return
+            return self
         #if the widget isn't done and the component is the next needed component then concatenate
         if self.next_char == comp and self.next_idx < len(self.needed):
             self.current_string = self.current_string+comp
@@ -32,10 +32,11 @@ class Widget:
             else:
                 self.next_char = self.needed[self.next_idx+1]
                 self.next_idx = self.next_idx+1
-        else: return
+        else: return self
 
         if self.current_string == self.needed:
             self.done = True
+        return self
 
 
 

@@ -1,8 +1,9 @@
 ## author : Michael Racine 
 ## date: 3/6/18
-#sys.setrecursionlimit(1500)
 import Planning
 import Widget
+import sys
+sys.setrecursionlimit(5000)
 #creating distance dictionaries. They work like arrays but the index is the name of the 
 #factory
 start_dist  = {'A':0,    'B':0,   'C':0,   'D':0,   'E':0}
