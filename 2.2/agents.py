@@ -32,6 +32,9 @@ class Agent(metaclass=ABCMeta):
     @abstractmethod
     def make_move(self): pass
 
+    @abstractmethod
+    def play_full_game(self): pass
+
     def get_play_status(self): return self.__in_play
     def get_game_type(self): return self.__game_type
     def get_affinity(self): return self.__affinity 
@@ -54,11 +57,17 @@ class Reflex(Agent):
 
         # If the agent is starting a game, make an 
         # initial move
-        if self.get_play_status() == False: self.initial_move()
-        
+        if self.get_play_status() == False: 
+            self.initial_move()
+            return
+
         # Check wheather the the agent side is going to 
         # win by making one move, make the move
-        #if self.victory_check_self() == 1: pass
+        best_move = self.victory_check_self()
+        if best_move != None: 
+            x = best_move[0]
+            y = best_move[1]
+            self.get_game_space().set_tile(x,y,self.get_affinity())
 
         # Check if the oponent has a compromising move 
         #elif self.victory_check_oponent() == 1: pass
@@ -85,7 +94,7 @@ class Reflex(Agent):
             return None
 
         
-    '''def victory_check(self):
+    def victory_check(self):
         """
         victory_check() -> (int,int)
         
@@ -93,16 +102,22 @@ class Reflex(Agent):
         more tile. If so, return the (x,y) position
         of where to place the tile.
         """
+
+        # get essential values
+        board = self.get_game_space()
+        affinity = self.get_affinity()
         
         # pick the right check for the game we are playing
-        if isInstance(self, Gomoku):
-            for block in self.__winning_blocks:
-                if len(block) == 4
-            
+        if isinstance(board, Gomoku):
+            best_move = None
+            for move in board.get_winning_moves(affinity):
+                best_move = move
+            return best_move
+
         else:
             print('Unknown game. Returning')
             return None
-    '''
+    
         
 '''class MiniMax(Agent):
     def __init__(self, tile_type, game_space, search_depth):

@@ -38,6 +38,9 @@ class Gomoku(object):
             self.__blanks = h*arg
             self.__width = arg
             self.__height = h
+            self.__winning_moves = {}
+
+    def get_winning_moves(self, affinity): return self.__winning_moves[affinity]
 
     def set_tile(self, x, y, tile_type):
         """ 
@@ -262,30 +265,37 @@ class Tile(object):
                 neighbors['SE'].__rightdiag_friends = neighbors['SE'].__rightdiag_friends.union(self.__rightdiag_friends)
                 self.__rightdiag_friends = self.__rightdiag_friends.union(neighbors['SE'].__rightdiag_friends)
                 max_friends.append(len(self.__rightdiag_friends))
+            
             elif k == 'NW' and neighbors['NW'].get_tile_type() == tile_type: 
                 neighbors['NW'].__rightdiag_friends = neighbors['NW'].__rightdiag_friends.union(self.__rightdiag_friends)
                 self.__rightdiag_friends = self.__rightdiag_friends.union(neighbors['NW'].__rightdiag_friends)
                 max_friends.append(len(self.__rightdiag_friends)) 
+            
             elif k == 'N' and neighbors['N'].get_tile_type() == tile_type: 
                 neighbors['N'].__vertical_friends = neighbors['N'].__vertical_friends.union(self.__vertical_friends)
                 self.__vertical_friends = self.__vertical_friends.union(neighbors['N'].__vertical_friends)
                 max_friends.append(len(self.__vertical_friends)) 
+            
             elif k == 'S' and neighbors['S'].get_tile_type() == tile_type:
                 neighbors['S'].__vertical_friends = neighbors['S'].__vertical_friends.union(self.__vertical_friends)
                 self.__vertical_friends = self.__vertical_friends.union(neighbors['S'].__vertical_friends)
                 max_friends.append(len(self.__vertical_friends)) 
+            
             elif k == 'W' and neighbors['W'].get_tile_type() == tile_type: 
                 neighbors['W'].__horizontal_friends = neighbors['W'].__horizontal_friends.union(self.__horizontal_friends)
                 self.__horizontal_friends = self.__horizontal_friends.union(neighbors['W'].__horizontal_friends)
                 max_friends.append(len(self.__horizontal_friends)) 
+            
             elif k == 'E' and neighbors['E'].get_tile_type() == tile_type: 
                 neighbors['E'].__horizontal_friends = neighbors['E'].__horizontal_friends.union(self.__horizontal_friends)
                 self.__horizontal_friends = self.__horizontal_friends.union(neighbors['E'].__horizontal_friends)
                 max_friends.append(len(self.__horizontal_friends)) 
+            
             elif k == 'NE' and neighbors['NE'].get_tile_type() == tile_type: 
                 neighbors['NE'].__leftdiag_friends = neighbors['NE'].__leftdiag_friends.union(self.__leftdiag_friends)
                 self.__leftdiag_friends = self.__leftdiag_friends.union(neighbors['NE'].__leftdiag_friends)
                 max_friends.append(len(self.__leftdiag_friends)) 
+            
             elif k == 'SW' and neighbors['SW'].get_tile_type() == tile_type:
                 neighbors['SW'].__leftdiag_friends = neighbors['SW'].__leftdiag_friends.union(self.__leftdiag_friends) 
                 self.__leftdiag_friends = self.__leftdiag_friends.union(neighbors['SW'].__leftdiag_friends)
