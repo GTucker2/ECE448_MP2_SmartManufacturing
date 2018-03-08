@@ -1,9 +1,11 @@
 ## author : Michael Racine 
 ## date: 2/21/18
 
-import queue
 import Widget
 import PlanTree
+import priority_queue
+import graph
+import math
 
 #class that creates the states to go between. 
 class State:
@@ -27,8 +29,10 @@ def search_smallest_stops(graph, start, end):
     if graph is None: return 'graph is null: Function Failed'
     
     # Declare a queue and enqueue the starting node.
-    q = queue.Queue()         
-    q.enqueue(root)    
+    q = priority_queue.PriorityQueue()
+    q.put(root, 0)    
+    curr_cost = {}
+    curr_cost[start] = 0
 
     # Declare a string to count factory stops
     # Set it to blank space.
@@ -39,11 +43,26 @@ def search_smallest_stops(graph, start, end):
     # and check for the goal. If at the goal, copy the successful
     # path to the array of mazedata and then return 1. Else,
     # expand the node to the queue. 
-    while q.size() > 0:       
-        cur = q.dequeue() 
-        if cur.traversed is False:
-            #TODO: create search 
-            cur.traversed = True
+    while not q.empty():       
+        cur = q.get() 
+        nodes_expanded = nodes_expanded + 1
+
+        if end[1].done and end[2].done and end[3].done and end[4].done and end[5].done:
+            return (solution, nodes_expanded)
+
+        for next in graph.neighbors(cur):
+            update_cost = curr_cost[cur] + graph.cost(cur, next)
+            if update_cost < curr_cost.get(next, math.inf):
+                curr_cost[next] = update_cost
+                prior = update_cost + stop_hist(end)  #THIS DOESN'T WORK YET
+                q.put(next, prior)                    #"""""""""""""""""""""
+                end[1].add_comp(next)
+                end[2].add_comp(next)
+                end[3].add_comp(next)
+                end[4].add_comp(next)
+                end[5].add_comp(next)
+                solution = solution + cur
+        
     # Return the failed because solution was not found
     solution = 'FAILED'
     return (solution, nodes_expanded)
@@ -55,8 +74,8 @@ def search_shortest_dist(graph, start, end):
     # Check if the graph is valid. If it is not, return error string.
     if graph is None: return 'graph is null: Function Failed'
     # Declare a queue and enqueue the starting node.
-    q = queue.Queue()         
-    q.enqueue(root)    
+    q = priority_queue.PriorityQueue()
+    q.put(root, 0)        
 
     # Declare a string to count factory stops and int to count miles traversed
     # Set it to blank space.
@@ -67,11 +86,26 @@ def search_shortest_dist(graph, start, end):
     # and check for the goal. If at the goal, copy the successful
     # path to the array of mazedata and then return 1. Else,
     # expand the node to the queue. 
-    while q.size() > 0:       
-        cur = q.dequeue() 
-        if cur.traversed is False:
-            #TODO: create search 
-            cur.traversed = True
+    while not q.empty():       
+        cur = q.get() 
+        nodes_expanded = nodes_expanded + 1
+
+        if end[1].done and end[2].done and end[3].done and end[4].done and end[5].done:
+            return (solution, miles_traveled, nodes_expanded)
+
+        for next in graph.neighbors(cur):
+            update_cost = curr_cost[cur] + graph.cost(cur, next)
+            if update_cost < curr_cost.get(next, math.inf):
+                curr_cost[next] = update_cost
+                prior = update_cost + dist_hist(end)  #THIS DOESN'T WORK YET
+                q.put(next, prior)                    #"""""""""""""""""""""
+                end[1].add_comp(next)
+                end[2].add_comp(next)
+                end[3].add_comp(next)
+                end[4].add_comp(next)
+                end[5].add_comp(next)
+                solution = solution + cur
+                miles_traveled = miles_traveled + graph.cost(cur, next)
     # Return the failed because solution was not found
     solution = 'FAILED'
     miles_traveled = -1
@@ -96,13 +130,13 @@ def stop_hist(comps):
 #param:  dist: list of distances to other components
 #return: component as a string
 def dist_hist(dist):
-    short = 'A'
-    if(dist[short] > dist['B']):
-        short = 'B'
-    if(dist[short] > dist['C']):
-        short = 'C'
-    if(dist[short] > dist['D']):
-        short = 'D'
-    if(dist[short] > dist['E']):
-        short = 'E'
+    short = dist['A']
+    if(short > dist['B']):
+        short = dist['B']
+    if(short > dist['C']):
+        short = dist['C']
+    if(short > dist['D']):
+        short = dist['D']
+    if(short > dist['E']):
+        short = dist['E']
     return short
