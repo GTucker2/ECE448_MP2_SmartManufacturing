@@ -39,13 +39,8 @@ class Gomoku(object):
             self.__width = arg
             self.__height = h
             self.__blocks = self.generate_blocks(WINNING_ROW_SIZE())
-
-
-            #self.__win_moves_red = []
-            #self.__win_moves_blue = []
-            #self.__moves = []
-            
-            #for x in range(arg): for y in range(h): self.__moves.append((x,y))
+            self.__winning_blocks_red = [block for block in self.__blocks]
+            self.__winning_blocks_blue = [block for block in self.__blocks]
 
     def generate_blocks(self, size):
 
@@ -148,6 +143,27 @@ class Gomoku(object):
 
         return blocks 
 
+    def update_blocks(self, x, y, affinity):
+        for block in self.__blocks[(x,y)]:
+            if affinity == RED_TILE():
+                if block in self.__winning_blocks_blue:
+                    remove(block)
+                block.red.append((x,y))
+                block.blank.remove((x,y))
+            elif affinity == BLUE_TILE():
+                if block in self.__winning_blocks_red:
+                    remove(block)
+                block.blue.append((x,y))
+                block.blank.remove((x,y))
+            elif affinity == BLANK_TILE():
+                print('cannot remove a tile')
+            print('Tile Accessed: ' + str((x,y)))
+            print('Block altered: ' + str(block.tiles))
+            print('Reds: ' + str(block.red))
+            print('Blues: ' + str(block.blue))
+            print('Blanks: ' + str(block.blank))
+            print('\n')
+
     def set_tile(self, x, y, tile_type):
         """ 
         set_tile(int, int, t in constants.TILE_TYPES()) -> int
@@ -179,6 +195,7 @@ class Gomoku(object):
         # remove from the list of remaining possible moves
         self.__board_space[x][y].change_type(tile_type)
         self.__blanks -= 1
+        self.update_blocks(x,y,tile_type)
         #self.__moves.remove(x,y)
 
         # Gather the neighbors of the tile
@@ -418,9 +435,9 @@ class Block(object):
 
     def __init__(self, tiles):
         self.tiles = [tile for tile in tiles]
-        self.total_red = 0
-        self.total_blue = 0
-        self.total_blank = len(tiles) 
+        self.red = []
+        self.blue = []
+        self.blank = [tile for tile in tiles] 
 
 """ Code below here is to be exclusively used for 
 testing the Gomoku class.
