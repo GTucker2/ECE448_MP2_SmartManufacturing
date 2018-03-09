@@ -38,9 +38,115 @@ class Gomoku(object):
             self.__blanks = h*arg
             self.__width = arg
             self.__height = h
-            self.__winning_moves = {}
+            self.__blocks = self.generate_blocks(WINNING_ROW_SIZE())
 
-    def get_winning_moves(self, affinity): return self.__winning_moves[affinity]
+
+            #self.__win_moves_red = []
+            #self.__win_moves_blue = []
+            #self.__moves = []
+            
+            #for x in range(arg): for y in range(h): self.__moves.append((x,y))
+
+    def generate_blocks(self, size):
+
+        # create the blocks map
+        blocks = {}
+
+        # generate horizontal blocks 
+        for y in range (0, self.__height):
+            tiles = []
+            for x in range(0, self.__width):
+                if len(tiles) != size:
+                    tiles.append((x,y))
+                else:
+                    tiles.remove((tiles[0]))
+                    tiles.append((x,y))
+                if len(tiles) == size:
+                    new_block = Block(tiles)
+                    for tile in tiles:
+                        if tile not in blocks.keys(): blocks[tile] = []
+                        blocks[tile].append(new_block)
+
+        # generate vertical blocks
+        for x in range(0, self.__width):
+            tiles = []
+            for y in range(0, self.__height):
+                if len(tiles) != size:
+                    tiles.append((x,y))
+                else:
+                    tiles.remove(tiles[0])
+                    tiles.append((x,y))
+                if len(tiles) == size:
+                    new_block = Block(tiles)
+                    for tile in tiles:
+                        if tile not in blocks.keys(): blocks[tile] = []
+                        blocks[tile].append(new_block)
+
+        # generate diagonal blocks
+        # credit @Squidcor here: https://stackoverflow.com/questions/6150382/c-process-2d-array-elements-in-a-diagonal-fashion
+        #First half (including middle diagonal)
+        for i in range(0,self.__width):
+            tiles = []
+            for j in range(0,i+1):
+                if len(tiles) != size:
+                    tiles.append((j,i-j))
+                else:
+                    tiles.remove(tiles[0])
+                    tiles.append((j,i-j))
+                if len(tiles) == size:
+                    new_block = Block(tiles)
+                    for tile in tiles:
+                        if tile not in blocks.keys(): blocks[tile] = []
+                        blocks[tile].append(new_block)
+        #Second half (excluding middle diagonal) 
+        N = self.__width
+        for i in reversed(range(0, N)):
+            tiles = []
+            for j in range(0,i):
+                if len(tiles) != size:
+                    tiles.append((N-i+j,N-j-1))
+                else:
+                    tiles.remove(tiles[0])
+                    tiles.append((N-i+j,N-j-1))
+                if len(tiles) == size:
+                    new_block = Block(tiles)
+                    for tile in tiles:
+                        if tile not in blocks.keys(): blocks[tile] = []
+                        blocks[tile].append(new_block)
+
+        # generate diagonal blocks (other way)
+        #First half (including middle diagonal)
+        N = self.__width - 1
+        for i in range(0,N+1):
+            tiles = []
+            for j in range(0,i+1):
+                if len(tiles) != size:
+                    tiles.append((i-j, N-j))
+                else:
+                    tiles.remove(tiles[0])
+                    tiles.append((i-j, N-j))
+                if len(tiles) == size:
+                    new_block = Block(tiles)
+                    for tile in tiles:
+                        if tile not in blocks.keys(): blocks[tile] = []
+                        blocks[tile].append(new_block)
+        #Second half (excluding middle diagonal) 
+        N = self.__width
+        for i in reversed(range(0, N-1)):
+            tiles = []
+            for j in range(0,i+1):
+                if len(tiles) != size:
+                    tiles.append((N-j-1,i-j))
+                else:
+                    tiles.remove(tiles[0])
+                    tiles.append((N-j-1,i-j))
+                if len(tiles) == size:
+                    new_block = Block(tiles)
+                    for tile in tiles:
+                        if tile not in blocks.keys(): blocks[tile] = []
+                        blocks[tile].append(new_block)
+
+        return blocks 
 
     def set_tile(self, x, y, tile_type):
         """ 
@@ -69,9 +175,11 @@ class Gomoku(object):
             print('Attempt to access invalid y coordinate; tile not set.')
             return 0
 
-        # Adjust the type of tile and decriment the blanks counter
+        # Adjust the type of tile, decriment the blanks counter, and 
+        # remove from the list of remaining possible moves
         self.__board_space[x][y].change_type(tile_type)
         self.__blanks -= 1
+        #self.__moves.remove(x,y)
 
         # Gather the neighbors of the tile
         neighbors = {}
@@ -306,11 +414,19 @@ class Tile(object):
         if len(max_friends) > 0 and max(max_friends) >= WINNING_ROW_SIZE(): return 1
         else: return 0
 
+class Block(object):
+
+    def __init__(self, tiles):
+        self.tiles = [tile for tile in tiles]
+        self.total_red = 0
+        self.total_blue = 0
+        self.total_blank = len(tiles) 
+
 """ Code below here is to be exclusively used for 
 testing the Gomoku class.
 """  
 if __name__ == '__main__': 
-    new_board = Gomoku(5,5)
+    new_board = Gomoku(7,7)
     copy_board = Gomoku(new_board)
     new_board.set_tile(1,2,RED_TILE())
     new_board.set_tile(0,2,RED_TILE())

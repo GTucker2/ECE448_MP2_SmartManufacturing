@@ -109,9 +109,43 @@ class Reflex(Agent):
         
         # pick the right check for the game we are playing
         if isinstance(board, Gomoku):
-            best_move = None
-            for move in board.get_winning_moves(affinity):
-                best_move = move
+            x = 0
+            y = 1
+            moves = board.get_moves()
+            best_move, leftmost, rightmost, topmost, bottommost = []
+            if affinity = RED_TILE(): red_wins = board.get_red_wins()
+            elif affinity = BLUE_TILE(): blue_wins = board.get_blue_wins()
+
+            #leftmost
+            for win in wins:
+                if leftmost is None: leftmost = win
+                else: 
+                    if win[x] < leftmost[x]: leftmost = win
+                    elif win[x] == leftmost[x]: if win[y] < leftmost[y]: leftmost = win 
+            #bottommost
+            for win in wins:
+                if bottommost is None: bottommost = win
+                else: 
+                    if win[y] < bottommost[y]: bottommost = win
+                    elif win[y] == bottommost[y]: if win[x] < bottommost[x]: bottommost = win
+            #rightmost
+            for win in wins:
+                if rightmost is None: rightmost = win
+                else: 
+                    if win[x] > rightmost[x]: rightmost = win
+                    elif win[x] == rightmost[x]: if win[y] < rightmost[y]: rightmost = win
+            #topmost
+            for win in wins:
+                if best_move is None: best_move = win
+                else: 
+                    if win[y] > topmost[y]: topmost = win
+                    elif win[y] == topmost[y]: if win[x] < topmost[x]: topmost = win
+
+            # Choose the best win 
+            if leftmost is not None: best_move = leftmost
+            elif bottommost is not None: best_move = bottommost
+            elif rightmost is not None: best_move = rightmost
+            else: best_move = topmost
             return best_move
 
         else:
