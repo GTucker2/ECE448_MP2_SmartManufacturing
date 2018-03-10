@@ -147,12 +147,37 @@ class Reflex(Agent):
                     first = block.tiles[0]
                     last = block.tiles[len(block.tiles)-1]
                     if block.direction == 'horizontal':
-                        
+                        x = first[0] - 1
+                        y = first[1]
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
+                        x = last[0] + 1
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
                     elif block.direction == 'vertical':
-
+                        x = first[0] 
+                        y = last[1] + 1
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
+                        y = first[0] - 1
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
                     elif block.direction == 'diagonal(\)':
-
+                        x = first[0] 
+                        y = last[1] + 1
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
+                        y = first[0] - 1
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
                     elif block.direction == 'diagonal(/)':
+                        x = first[0] 
+                        y = last[1] + 1
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
+                        y = first[0] - 1
+                        if board.get_tile(x,y) == BLANK_TILE():
+                            return (x,y)
                     else: return None
 
     def counter_opponent_advantageous(self): pass
