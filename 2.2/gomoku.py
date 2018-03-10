@@ -41,6 +41,18 @@ class Gomoku(object):
             self.__blocks = self.generate_blocks(WINNING_ROW_SIZE())
             self.__winning_blocks_red = [block for block in self.__blocks]
             self.__winning_blocks_blue = [block for block in self.__blocks]
+            self.__wins_red = []
+            self.__wins_blue = []
+
+    def get_winning_blocks(self, affinity):
+        if affinity == RED_TILE(): return self.__winning_blocks_red
+        elif affinity == BLUE_TILE(): return self.__winning_blocks_blue
+        else: return None
+    
+    def get_wins(self, affinity):
+        if affinity == RED_TILE(): return self.__wins_red
+        elif affinity == BLUE_TILE(): return self._wins_blue
+        else: return None
 
     def generate_blocks(self, size):
 
@@ -57,7 +69,7 @@ class Gomoku(object):
                     tiles.remove((tiles[0]))
                     tiles.append((x,y))
                 if len(tiles) == size:
-                    new_block = Block(tiles)
+                    new_block = Block(tiles,'horizontal')
                     for tile in tiles:
                         if tile not in blocks.keys(): blocks[tile] = []
                         blocks[tile].append(new_block)
@@ -72,7 +84,7 @@ class Gomoku(object):
                     tiles.remove(tiles[0])
                     tiles.append((x,y))
                 if len(tiles) == size:
-                    new_block = Block(tiles)
+                    new_block = Block(tiles,'vertical')
                     for tile in tiles:
                         if tile not in blocks.keys(): blocks[tile] = []
                         blocks[tile].append(new_block)
@@ -89,7 +101,7 @@ class Gomoku(object):
                     tiles.remove(tiles[0])
                     tiles.append((j,i-j))
                 if len(tiles) == size:
-                    new_block = Block(tiles)
+                    new_block = Block(tiles,'diagonal(/)')
                     for tile in tiles:
                         if tile not in blocks.keys(): blocks[tile] = []
                         blocks[tile].append(new_block)
@@ -104,7 +116,7 @@ class Gomoku(object):
                     tiles.remove(tiles[0])
                     tiles.append((N-i+j,N-j-1))
                 if len(tiles) == size:
-                    new_block = Block(tiles)
+                    new_block = Block(tiles,'diagonal(/)')
                     for tile in tiles:
                         if tile not in blocks.keys(): blocks[tile] = []
                         blocks[tile].append(new_block)
@@ -121,7 +133,7 @@ class Gomoku(object):
                     tiles.remove(tiles[0])
                     tiles.append((i-j, N-j))
                 if len(tiles) == size:
-                    new_block = Block(tiles)
+                    new_block = Block(tiles,'diagonal(\)')
                     for tile in tiles:
                         if tile not in blocks.keys(): blocks[tile] = []
                         blocks[tile].append(new_block)
@@ -136,7 +148,7 @@ class Gomoku(object):
                     tiles.remove(tiles[0])
                     tiles.append((N-j-1,i-j))
                 if len(tiles) == size:
-                    new_block = Block(tiles)
+                    new_block = Block(tiles,'diagonal(\)')
                     for tile in tiles:
                         if tile not in blocks.keys(): blocks[tile] = []
                         blocks[tile].append(new_block)
@@ -150,15 +162,20 @@ class Gomoku(object):
                     remove(block)
                 block.red.append((x,y))
                 block.blank.remove((x,y))
+                if len(block.red) == WINNING_ROW_SIZE() - 1:
+                     self._wins_red = block.blank[0]
             elif affinity == BLUE_TILE():
                 if block in self.__winning_blocks_red:
                     remove(block)
                 block.blue.append((x,y))
                 block.blank.remove((x,y))
+                if len(block.blue) == WINNING_ROW_SIZE() - 1:
+                     self._wins_blue = block.blank[0]
             elif affinity == BLANK_TILE():
                 print('cannot remove a tile')
             print('Tile Accessed: ' + str((x,y)))
             print('Block altered: ' + str(block.tiles))
+            print('Block direction: ' + block.direction)
             print('Reds: ' + str(block.red))
             print('Blues: ' + str(block.blue))
             print('Blanks: ' + str(block.blank))
@@ -433,7 +450,8 @@ class Tile(object):
 
 class Block(object):
 
-    def __init__(self, tiles):
+    def __init__(self, tiles, direction):
+        self.direction = direction
         self.tiles = [tile for tile in tiles]
         self.red = []
         self.blue = []

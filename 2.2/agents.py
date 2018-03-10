@@ -32,8 +32,8 @@ class Agent(metaclass=ABCMeta):
     @abstractmethod
     def make_move(self): pass
 
-    @abstractmethod
-    def play_full_game(self): pass
+    #@abstractmethod
+    #def play_full_game(self): pass
 
     def get_play_status(self): return self.__in_play
     def get_game_type(self): return self.__game_type
@@ -48,7 +48,6 @@ class Agent(metaclass=ABCMeta):
 class Reflex(Agent):
     def __init__(self, affinity, game_type, game_space, opponent=None):
         super().__init__(affinity, game_type, game_space, opponent)
-        self.__winning_blocks = set( )
 
     def __str__(self):
         pass
@@ -63,14 +62,14 @@ class Reflex(Agent):
 
         # Check wheather the the agent side is going to 
         # win by making one move, make the move
+        # OR
+        # Check if the oponent has a compromising move 
         best_move = self.victory_check_self()
+        if best_move is None: best_move = self.counter_oponent()
         if best_move != None: 
             x = best_move[0]
             y = best_move[1]
             self.get_game_space().set_tile(x,y,self.get_affinity())
-
-        # Check if the oponent has a compromising move 
-        #elif self.victory_check_oponent() == 1: pass
 
         # Check for best possible way to make an 
         # adventageous move
@@ -93,7 +92,6 @@ class Reflex(Agent):
             print('Unknown game. Returning')
             return None
 
-        
     def victory_check(self):
         """
         victory_check() -> (int,int)
@@ -109,49 +107,56 @@ class Reflex(Agent):
         
         # pick the right check for the game we are playing
         if isinstance(board, Gomoku):
-            x = 0
-            y = 1
-            moves = board.get_moves()
-            best_move, leftmost, rightmost, topmost, bottommost = []
-            if affinity = RED_TILE(): red_wins = board.get_red_wins()
-            elif affinity = BLUE_TILE(): blue_wins = board.get_blue_wins()
+            
+            possible_wins = board.get_wins(affinity)
+            
+            if len(possible_wins) == 1: return possible_wins[0]
+            elif len(possible_wins) > 1:
+                best_win = None
+                wins_by_x = {}
+                wins_by_y = {}
+                for win in possible_wins:
+                    if win[0] not in wins_by_x.keys():
+                        wins_by_x[win[0]] = []
+                    if win[1] not in wins_by_y.keys():
+                        wins_by_y[win[1]] = []
+                    wins_by_x[win[0]].append(win)
+                    wins_by_y[win[1]].append(win)
+                for y in wins_by_y:
+                    if len(wins_by_y[y]) > 1: 
+                        for win in wins_by_y[y]:
+                            if best_win is None or win[0] < best_win[0]:
+                                best_win = win 
+                return best_win
 
-            #leftmost
-            for win in wins:
-                if leftmost is None: leftmost = win
-                else: 
-                    if win[x] < leftmost[x]: leftmost = win
-                    elif win[x] == leftmost[x]: if win[y] < leftmost[y]: leftmost = win 
-            #bottommost
-            for win in wins:
-                if bottommost is None: bottommost = win
-                else: 
-                    if win[y] < bottommost[y]: bottommost = win
-                    elif win[y] == bottommost[y]: if win[x] < bottommost[x]: bottommost = win
-            #rightmost
-            for win in wins:
-                if rightmost is None: rightmost = win
-                else: 
-                    if win[x] > rightmost[x]: rightmost = win
-                    elif win[x] == rightmost[x]: if win[y] < rightmost[y]: rightmost = win
-            #topmost
-            for win in wins:
-                if best_move is None: best_move = win
-                else: 
-                    if win[y] > topmost[y]: topmost = win
-                    elif win[y] == topmost[y]: if win[x] < topmost[x]: topmost = win
+            else: return None
 
-            # Choose the best win 
-            if leftmost is not None: best_move = leftmost
-            elif bottommost is not None: best_move = bottommost
-            elif rightmost is not None: best_move = rightmost
-            else: best_move = topmost
-            return best_move
+    def counter_opponent_win(self):
 
-        else:
-            print('Unknown game. Returning')
-            return None
-    
+         # get essential values
+        board = self.get_game_space()
+        affinity = self.__opponent.get_affinity()
+        
+        # pick the right check for the game we are playing
+        if isinstance(board, Gomoku):
+            
+            possible_wins = board.get_wins(affinity)
+            winning_blocks = board.get_winning_blocks(affinity)
+            for win in possible_wins:
+                for block in winning_blocks[win]:
+                    first = block.tiles[0]
+                    last = block.tiles[len(block.tiles)-1]
+                    if block.direction == 'horizontal':
+                        
+                    elif block.direction == 'vertical':
+
+                    elif block.direction == 'diagonal(\)':
+
+                    elif block.direction == 'diagonal(/)':
+                    else: return None
+
+    def counter_opponent_advantageous(self): pass
+    def best_last_option(self): pass
         
 '''class MiniMax(Agent):
     def __init__(self, tile_type, game_space, search_depth):
