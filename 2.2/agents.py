@@ -293,10 +293,38 @@ class Reflex(Agent):
                 print(block.tiles)
                 if best_block is None: best_block = block 
                 elif block.tiles[0][0] <= best_block.tiles[0][0]: 
-                    if (block.tiles[0][1] != block.tiles[1][1]) or \
-                    block.tiles[0][1] >= best_block.tiles[0][1]:
-                        print('considered block:'+str(block.tiles))
-                        best_block = block       
+                    if (block.tiles[0][1] != block.tiles[1][1]):
+                        if block.direction == 'vertical':
+                            if block.tiles[WINNING_ROW_SIZE()-1][1] >= best_block.tiles[WINNING_ROW_SIZE()-1][1]:
+                                if affinity == RED_TILE(): 
+                                    if len(block.red) >= len(best_block.red):
+                                        print('considered block:'+str(block.tiles))
+                                        best_block = block    
+                                if affinity == BLUE_TILE(): 
+                                    if len(block.blue) >= len(best_block.blue):
+                                        print('considered block:'+str(block.tiles))
+                                        best_block = block
+                        else:
+                            if block.tiles[0][1] >= best_block.tiles[0][1]:
+                                if affinity == RED_TILE(): 
+                                    if len(block.red) >= len(best_block.red):
+                                        print('considered block:'+str(block.tiles))
+                                        best_block = block    
+                                if affinity == BLUE_TILE(): 
+                                    if len(block.blue) >= len(best_block.blue):
+                                        print('considered block:'+str(block.tiles))
+                                        best_block = block  
+                    else:
+                        if block.tiles[0][1] >= best_block.tiles[0][1] and block.tiles[1][0] <= best_block.tiles[1][0]:
+                                if affinity == RED_TILE(): 
+                                    if len(block.red) >= len(best_block.red):
+                                        print('considered block:'+str(block.tiles))
+                                        best_block = block    
+                                if affinity == BLUE_TILE(): 
+                                    if len(block.blue) >= len(best_block.blue):
+                                        print('considered block:'+str(block.tiles))
+                                        best_block = block       
+
             print('best block:'+str(best_block.tiles))
             best_move = (7,-1)
             for tile_i in range(len(best_block.tiles)):
@@ -327,12 +355,19 @@ class Reflex(Agent):
                 
             return best_move
 
-'''class MiniMax(Agent):
+class MiniMax(Agent):
     def __init__(self, tile_type, game_space, search_depth):
         super().__init__(self, tile_type, game_space)
         self.__search_depth = search_depth
+
+    def make_move(): pass
+
+    def minimax(node, depth, maxer):
         
-class AlphaBeta(Agent):
+        
+    
+        
+'''class AlphaBeta(Agent):
     def __init__(self, tile_type, game_space, search_depth):
         super().__init__(self, tile_type, game_space)
         self.__search_depth = search_depth
@@ -355,10 +390,10 @@ if __name__ == '__main__':
     red_reflex = Reflex(RED_TILE(), Gomoku, new_game, blue_reflex)
     
     # make the first two assigned moves
-    new_game.set_tile(5,1,BLUE_TILE())
+    new_game.set_tile(1,5,RED_TILE())
     new_game.print_board()
     print('\n')
-    new_game.set_tile(1,5,RED_TILE())
+    new_game.set_tile(5,1,BLUE_TILE())
     new_game.print_board()
     print('\n')
     blue_reflex.set_play_status(True)
@@ -368,11 +403,11 @@ if __name__ == '__main__':
     win_status = 0
     while win_status == 0:
         x = input('Make an input to step forward')
-        blue_reflex.make_move()
+        red_reflex.make_move()
         new_game.print_board()
         if win_status != 0: break 
         else: 
             x = input('Make an input to step forward')
-            red_reflex.make_move()
+            blue_reflex.make_move()
         new_game.print_board()
         print('\n')
