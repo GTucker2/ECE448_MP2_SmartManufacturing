@@ -35,23 +35,44 @@ class Gomoku(object):
         # otherwise define a new object 
         else:
             self.__board_space = [[Tile() for x in range(arg)] for y in range(h)]
+            self.__print_space = [['.' for x in range(arg)] for y in range(h)]
+            self.blue_chars = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
+            self.red_chars = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+            self.cur_char_red = 0
+            self.cur_char_blue = 0
             self.__blanks = h*arg
             self.__width = arg
             self.__height = h
             self.__blocks = self.generate_blocks(WINNING_ROW_SIZE())
-            self.__winning_blocks_red = [block for block in self.__blocks]
-            self.__winning_blocks_blue = [block for block in self.__blocks]
+            self.__adv_blocks = self.generate_blocks(3)
+            self.__adv_blocks_red = []
+            self.__adv_blocks_blue = []
+            self.__winning_blocks_blue = []
+            self.__winning_blocks_red = []
+            for tile in self.__blocks.keys():
+                for block in self.__blocks[tile]:
+                    if block not in self.__winning_blocks_blue:
+                        self.__winning_blocks_blue.append(block)
+                    if block not in self.__winning_blocks_red:
+                        self.__winning_blocks_red.append(block)
             self.__wins_red = []
             self.__wins_blue = []
 
+    def get_adv_blocks(self, affinity):
+        if affinity == RED_TILE(): return self.__adv_blocks_red
+        elif affinity == BLUE_TILE(): return self.__adv_blocks_blue
+        else: return None
+
     def get_winning_blocks(self, affinity):
-        if affinity == RED_TILE(): return self.__winning_blocks_red
-        elif affinity == BLUE_TILE(): return self.__winning_blocks_blue
+        if affinity == RED_TILE(): 
+            return self.__winning_blocks_red
+        elif affinity == BLUE_TILE(): 
+            return self.__winning_blocks_blue
         else: return None
     
     def get_wins(self, affinity):
         if affinity == RED_TILE(): return self.__wins_red
-        elif affinity == BLUE_TILE(): return self._wins_blue
+        elif affinity == BLUE_TILE(): return self.__wins_blue
         else: return None
 
     def generate_blocks(self, size):
@@ -137,6 +158,7 @@ class Gomoku(object):
                     for tile in tiles:
                         if tile not in blocks.keys(): blocks[tile] = []
                         blocks[tile].append(new_block)
+
         #Second half (excluding middle diagonal) 
         N = self.__width
         for i in reversed(range(0, N-1)):
@@ -159,27 +181,63 @@ class Gomoku(object):
         for block in self.__blocks[(x,y)]:
             if affinity == RED_TILE():
                 if block in self.__winning_blocks_blue:
-                    remove(block)
+                    self.__winning_blocks_blue.remove(block)
                 block.red.append((x,y))
                 block.blank.remove((x,y))
-                if len(block.red) == WINNING_ROW_SIZE() - 1:
-                     self._wins_red = block.blank[0]
+                if len(block.blank) == 1 and len(block.red) == WINNING_ROW_SIZE() - 1:
+                    l = len(block.tiles) - 1
+                    xw1 = block.tiles[0][0]
+                    yw1 = block.tiles[0][1]
+                    xw2 = block.tiles[l][0]
+                    yw2 = block.tiles[l][1]
+                    if self.get_tile(xw1,yw1) == BLANK_TILE() or self.get_tile(xw2,yw2) == BLANK_TILE():
+                        print('win block:'+str(block.tiles))
+                        print('added possible win:'+str(block.blank[0]))
+                        self.__wins_red.append(block.blank[0]) 
             elif affinity == BLUE_TILE():
                 if block in self.__winning_blocks_red:
-                    remove(block)
+                    self.__winning_blocks_red.remove(block)
                 block.blue.append((x,y))
                 block.blank.remove((x,y))
-                if len(block.blue) == WINNING_ROW_SIZE() - 1:
-                     self._wins_blue = block.blank[0]
+                if len(block.blank) == 1 and len(block.blue) == WINNING_ROW_SIZE() - 1:
+                    l = len(block.tiles) - 1
+                    xw1 = block.tiles[0][0]
+                    yw1 = block.tiles[0][1]
+                    xw2 = block.tiles[l][0]
+                    yw2 = block.tiles[l][1]
+                    if self.get_tile(xw1,yw1) == BLANK_TILE() or self.get_tile(xw2,yw2) == BLANK_TILE():
+                        print('win block:'+str(block.tiles))
+                        print('added possible win:'+str(block.blank[0]))
+                        self.__wins_blue.append(block.blank[0])
             elif affinity == BLANK_TILE():
                 print('cannot remove a tile')
-            print('Tile Accessed: ' + str((x,y)))
-            print('Block altered: ' + str(block.tiles))
-            print('Block direction: ' + block.direction)
-            print('Reds: ' + str(block.red))
-            print('Blues: ' + str(block.blue))
-            print('Blanks: ' + str(block.blank))
-            print('\n')
+            #print('Tile Accessed: ' + str((x,y)))
+            #print('Block altered: ' + str(block.tiles))
+            #print('Block direction: ' + block.direction)
+            #print('Reds: ' + str(block.red))
+            #print('Blues: ' + str(block.blue))
+            #print('Blanks: ' + str(block.blank))
+            #print('\n')
+
+    def update_adv_blocks(self, x, y, affinity):
+        
+        blocks = self.__adv_blocks[(x,y)]
+        for block in blocks:
+            #print(block.tiles)
+            block.blank.remove((x,y)) 
+            if affinity == RED_TILE(): 
+                block.red.append((x,y))
+                if len(block.red) == 3:
+                    print('added adventageous block red: '+str(block.tiles))
+                    self.__adv_blocks_red.append(block)
+
+            elif affinity == BLUE_TILE(): 
+                block.blue.append((x,y))
+                if len(block.blue) == 3:
+                    print('added adventageous block blue: '+str(block.tiles))
+                    self.__adv_blocks_blue.append(block)
+            
+            else: print('cannot remove a tile')
 
     def set_tile(self, x, y, tile_type):
         """ 
@@ -210,9 +268,16 @@ class Gomoku(object):
 
         # Adjust the type of tile, decriment the blanks counter, and 
         # remove from the list of remaining possible moves
-        self.__board_space[x][y].change_type(tile_type)
+        if self.__board_space[x][y].change_type(tile_type) == 0: return 0
+        if tile_type == RED_TILE(): 
+            self.__print_space[x][y] = self.red_chars[self.cur_char_red]
+            self.cur_char_red += 1
+        else: 
+            self.__print_space[x][y] = self.blue_chars[self.cur_char_blue]
+            self.cur_char_blue += 1
         self.__blanks -= 1
         self.update_blocks(x,y,tile_type)
+        self.update_adv_blocks(x,y,tile_type)
         #self.__moves.remove(x,y)
 
         # Gather the neighbors of the tile
@@ -254,10 +319,10 @@ class Gomoku(object):
 
         # check if we are accessing within range
         if x >= self.__width or x < WIDTH_MIN():
-            print('Attempt to access invalid x coordinate; tile not accessed.')
+            print('Attempt to access invalid x coordinate; tile not accessed:'+str((x,y)))
             return None
         elif y >= self.__height or y < HEIGHT_MIN():
-            print('Attempt to access invalid y coordinate; tile not accessed.')
+            print('Attempt to access invalid y coordinate; tile not accessed:'+str((x,y)))
             return None
         return self.__board_space[x][y].get_tile_type()
 
@@ -292,9 +357,9 @@ class Gomoku(object):
         Returns 1 is successful. Otherwise returns 0.
         """
 
-        for x in range(0, self.__width):
-            for y in range(0, self.__height):
-                print(self.__board_space[x][y].get_tile_type(), end='')
+        for y in range(0, self.__height):
+            for x in range(0, self.__width):
+                print(self.__print_space[x][y], end='')
             print('\n', end='')
 
 class Tile(object):

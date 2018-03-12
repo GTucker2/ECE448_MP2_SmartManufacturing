@@ -32,8 +32,8 @@ class Agent(metaclass=ABCMeta):
     @abstractmethod
     def make_move(self): pass
 
-    #@abstractmethod
-    #def play_full_game(self): pass
+    @abstractmethod
+    def play_full_game(self): pass
 
     def get_play_status(self): return self.__in_play
     def get_game_type(self): return self.__game_type
@@ -52,6 +52,9 @@ class Reflex(Agent):
     def __str__(self):
         pass
 
+    def play_full_game(self): pass
+
+
     def make_move(self):
 
         # If the agent is starting a game, make an 
@@ -64,16 +67,14 @@ class Reflex(Agent):
         # win by making one move, make the move
         # OR
         # Check if the oponent has a compromising move 
-        best_move = self.victory_check_self()
-        if best_move is None: best_move = self.counter_oponent()
+        best_move = self.victory_check()
+        if best_move is None: best_move = self.counter_opponent_win()
+        if best_move is None: best_move = self.counter_opponent_adv()
+        if best_move is None: best_move = self.best_last_option()
         if best_move != None: 
             x = best_move[0]
             y = best_move[1]
-            self.get_game_space().set_tile(x,y,self.get_affinity())
-
-        # Check for best possible way to make an 
-        # adventageous move
-        else: pass
+            return self.get_game_space().set_tile(x,y,self.get_affinity())
 
     def initial_move(self):
 
@@ -135,15 +136,25 @@ class Reflex(Agent):
 
          # get essential values
         board = self.get_game_space()
-        affinity = self.__opponent.get_affinity()
+        affinity = self.get_opponent().get_affinity()
         
         # pick the right check for the game we are playing
         if isinstance(board, Gomoku):
             
             possible_wins = board.get_wins(affinity)
-            winning_blocks = board.get_winning_blocks(affinity)
             for win in possible_wins:
-                for block in winning_blocks[win]:
+                print('possible win:'+str(win))
+            winning_blocks = board.get_winning_blocks(affinity)
+            best_move = None
+            for win in possible_wins:
+                if best_move is None: best_move = win
+                elif win[0] <= best_move[0]: 
+                    if win[1] >= best_move[1]:
+                        best_move = win
+            if best_move is not None: possible_wins.remove(best_move)
+            return best_move
+
+            '''for block in winning_blocks[win]:
                     first = block.tiles[0]
                     last = block.tiles[len(block.tiles)-1]
                     if block.direction == 'horizontal':
@@ -159,30 +170,163 @@ class Reflex(Agent):
                         y = last[1] + 1
                         if board.get_tile(x,y) == BLANK_TILE():
                             return (x,y)
-                        y = first[0] - 1
+                        y = first[1] - 1
                         if board.get_tile(x,y) == BLANK_TILE():
                             return (x,y)
                     elif block.direction == 'diagonal(\)':
-                        x = first[0] 
-                        y = last[1] + 1
+                        x = first[0] - 1
+                        y = first[1] - 1
                         if board.get_tile(x,y) == BLANK_TILE():
                             return (x,y)
-                        y = first[0] - 1
+                        x = last[0] + 1
+                        y = last[1] + 1
                         if board.get_tile(x,y) == BLANK_TILE():
                             return (x,y)
                     elif block.direction == 'diagonal(/)':
-                        x = first[0] 
-                        y = last[1] + 1
+                        x = first[0] - 1
+                        y = first[1] + 1
                         if board.get_tile(x,y) == BLANK_TILE():
                             return (x,y)
-                        y = first[0] - 1
+                        x = last[0] + 1
+                        y = last[1] - 1
                         if board.get_tile(x,y) == BLANK_TILE():
                             return (x,y)
-                    else: return None
+                    else: return None'''
 
-    def counter_opponent_advantageous(self): pass
-    def best_last_option(self): pass
+    def counter_opponent_adv(self):
+
+        # get essential values
+        board = self.get_game_space()
+        affinity = self.get_affinity()
+        opaffinity = self.get_opponent().get_affinity()
+
+        # pick the right check for the game we are playing
+        if isinstance(board, Gomoku):
+
+            blocks_advn = board.get_adv_blocks(opaffinity)
+            for block in blocks_advn:
+                print('advantageous block:'+str(block.tiles))
+            best_moves = []
+            best_move = None
+
+            for block in blocks_advn:
+                if block.direction == 'horizontal':
+                    x1 = block.tiles[0][0] - 1
+                    y1 = block.tiles[0][1] 
+                    x2 = block.tiles[2][0] + 1
+                    y2 = block.tiles[2][1] 
+                    if x1 < 0 or x2 >= 7: return None
+                    if board.get_tile(x1,y1) == BLANK_TILE() and \
+                    board.get_tile(x2,y2) == BLANK_TILE():
+                        best_moves.append((x1,y1))
+                elif block.direction == 'vertical':
+                    x1 = block.tiles[0][0] 
+                    y1 = block.tiles[0][1] - 1 
+                    x2 = block.tiles[2][0]
+                    y2 = block.tiles[2][1] + 1
+                    if y1 < 0 or y2 >= 7: return None
+                    if board.get_tile(x1,y1) == BLANK_TILE() and \
+                    board.get_tile(x2,y2) == BLANK_TILE():
+                        best_moves.append((x2,y2))
+                elif block.direction == 'diagonal(\)':
+                    x1 = block.tiles[0][0] - 1
+                    y1 = block.tiles[0][1] - 1
+                    x2 = block.tiles[2][0] + 1
+                    y2 = block.tiles[2][1] + 1
+                    if x1 < 0 or y1 < 0 or x2 >= 7 or y2 >= 7: return None
+                    if board.get_tile(x1,y1) == BLANK_TILE() and \
+                    board.get_tile(x2,y2) == BLANK_TILE():
+                        best_moves.append((x1,y1))
+                elif block.direction == 'diagonal(/)':
+                    x1 = block.tiles[0][0] - 1
+                    y1 = block.tiles[0][1] + 1
+                    x2 = block.tiles[2][0] + 1
+                    y2 = block.tiles[2][1] - 1
+                    if x1 < 0 or y1 >= 7 or x2 >= 7 or y2 < 0: return None
+                    if board.get_tile(x1,y1) == BLANK_TILE() and \
+                    board.get_tile(x2,y2) == BLANK_TILE():
+                        best_moves.append((x1,y1))
+
+            for move in best_moves:
+                print('considered advantageous move:'+str(move))
+                if best_move is None: best_move = move 
+                elif move[0] < best_move[0] and move[1] == best_move[1]:
+                    best_move = move
+                elif move[0] == best_move[0] and move[1] > best_move[1]:
+                    best_move = move
+                elif move[0] < best_move[0] and move[1] > best_move[1]:
+                    best_move = move
+
+            return best_move 
+
+    def best_last_option(self): 
         
+        # get essential values
+        board = self.get_game_space()
+        affinity = self.get_affinity()
+        
+        # pick the right check for the game we are playing
+        if isinstance(board, Gomoku):
+            
+            winning_blocks = board.get_winning_blocks(affinity)
+            print('total winning blocks:'+str(len(winning_blocks)))
+            best_blocks = []
+            best_block = None
+
+            for block in winning_blocks:
+                if affinity == BLUE_TILE():
+                    if len(best_blocks) == 0: best_blocks.append(block)
+                    elif len(block.blue) > len(best_blocks[0].blue):
+                        best_blocks = []
+                        best_blocks.append(block)
+                    elif len(block.blue) == len(best_blocks[0].blue):
+                        best_blocks.append(block)
+                elif affinity ==RED_TILE():
+                    if len(best_blocks) == 0: best_blocks.append(block)
+                    if len(block.red) > len(best_blocks[0].red):
+                        best_blocks = []
+                        best_blocks.append(block)
+                    elif len(block.red) == len(best_blocks[0].red):
+                        best_blocks.append(block)
+
+            for block in best_blocks:
+                print(block.tiles)
+                if best_block is None: best_block = block 
+                elif block.tiles[0][0] <= best_block.tiles[0][0]: 
+                    if (block.tiles[0][1] != block.tiles[1][1]) or \
+                    block.tiles[0][1] >= best_block.tiles[0][1]:
+                        print('considered block:'+str(block.tiles))
+                        best_block = block       
+            print('best block:'+str(best_block.tiles))
+            best_move = (7,-1)
+            for tile_i in range(len(best_block.tiles)):
+                tile = best_block.tiles[tile_i]
+                next_tile = None
+                prev_tile = None 
+                if tile_i+1 in range(len(best_block.tiles)):
+                    next_tile = best_block.tiles[tile_i+1]
+                if tile_i-1 in range(len(best_block.tiles)):
+                    prev_tile = best_block.tiles[tile_i-1]
+                if board.get_tile(tile[0],tile[1]) == BLANK_TILE():
+                    if prev_tile is not None and next_tile is None:
+                        if board.get_tile(prev_tile[0],prev_tile[1]) == affinity:
+                            if tile[0] <= best_move[0]: 
+                                if tile[1] >= tile[1]:
+                                    best_move = tile 
+                    elif next_tile is not None and prev_tile is None:
+                        if board.get_tile(next_tile[0],next_tile[1]) == affinity:
+                            if tile[0] <= best_move[0]: 
+                                if tile[1] >= tile[1]:
+                                    best_move = tile 
+                    elif next_tile is not None and prev_tile is not None:
+                        if board.get_tile(prev_tile[0],prev_tile[1]) == affinity or \
+                        board.get_tile(next_tile[0],next_tile[1]) == affinity:
+                            if tile[0] <= best_move[0]: 
+                                if tile[1] >= tile[1]:
+                                    best_move = tile  
+                
+            return best_move
+
 '''class MiniMax(Agent):
     def __init__(self, tile_type, game_space, search_depth):
         super().__init__(self, tile_type, game_space)
@@ -206,6 +350,29 @@ testing the Agent class and its subclasses.
 """ 
 if __name__ == '__main__': 
     new_game = Gomoku(7,7)
+
     blue_reflex = Reflex(BLUE_TILE(), Gomoku, new_game)
     red_reflex = Reflex(RED_TILE(), Gomoku, new_game, blue_reflex)
-    blue_reflex.make_move()
+    
+    # make the first two assigned moves
+    new_game.set_tile(5,1,BLUE_TILE())
+    new_game.print_board()
+    print('\n')
+    new_game.set_tile(1,5,RED_TILE())
+    new_game.print_board()
+    print('\n')
+    blue_reflex.set_play_status(True)
+    red_reflex.set_play_status(True)
+
+    # play a full game
+    win_status = 0
+    while win_status == 0:
+        x = input('Make an input to step forward')
+        blue_reflex.make_move()
+        new_game.print_board()
+        if win_status != 0: break 
+        else: 
+            x = input('Make an input to step forward')
+            red_reflex.make_move()
+        new_game.print_board()
+        print('\n')
