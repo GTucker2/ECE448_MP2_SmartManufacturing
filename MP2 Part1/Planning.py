@@ -123,7 +123,7 @@ def search_shortest_dist(graph, start, end):
 #param:  comps    : list of the next components to check
 #        n        : possible number of components
 #        next_comp: the compenent to calculate the cost
-#return: component as a string
+#return: number of times character appears in widgets
 def stop_hist(comps,next_comp, n):
     count = 0
     total_num = (n*5)
@@ -142,8 +142,11 @@ def stop_hist(comps,next_comp, n):
     return total_num-count
 
 #histogram to find the shortest distance to a widget
-#param:  dist: list of distances to other components
-#return: component as a string
+#param:  dist     : list of distances to other components
+#        n        : possible number of components
+#        next_comp: the compenent to calculate the cost
+#        comps    : list of the next components to check
+#return: number of times character appears in widgets time the distance between nodes
 def dist_hist(dist, comps, next_comp, n):
     count = stop_hist(comps, next_comp, n)
     return dist[next_comp] * count
