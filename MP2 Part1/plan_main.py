@@ -27,6 +27,7 @@ short_graph.weights ={
     'E' : {'A':1, 'B':1, 'C':1, 'D':1}   
     }
 shortest_path = Planning.search_smallest_stops(short_graph, 'start', {1:w1, 2:w2,3:w3, 4:w4,5:w5})
+print("shortest path search:")
 print(shortest_path)
 #part 1 Q2
 w1 = Widget.Widget('AEDCA')
@@ -52,7 +53,19 @@ dist_graph.weights ={
     'E' : {'A':277,  'B':337, 'C':399, 'D':387}   
     }
 shortest_dist = Planning.search_shortest_dist(dist_graph, 'start', {1:w1, 2:w2,3:w3, 4:w4,5:w5})
-print("shortest distance search")
+print("shortest distance search:")
 print(shortest_dist)
-
-
+#Bonus questions
+#print("Uniform Cost Searches: ")
+#w1 = Widget.Widget('AEDCA')
+#w2 = Widget.Widget('BEACD')
+#w3 = Widget.Widget('BABCE')
+#w4 = Widget.Widget('DADBD')
+#w5 = Widget.Widget('BECBD')
+#print(Planning.dijkstra_smallest_stops(short_graph, 'start', {1:w1, 2:w2,3:w3, 4:w4,5:w5}))
+#w1 = Widget.Widget('AEDCA')
+#w2 = Widget.Widget('BEACD')
+#w3 = Widget.Widget('BABCE')
+#w4 = Widget.Widget('DADBD')
+#w5 = Widget.Widget('BECBD')
+#print(Planning.dijkstra_shortest_dist(dist_graph, 'start', {1:w1, 2:w2,3:w3, 4:w4,5:w5}))
