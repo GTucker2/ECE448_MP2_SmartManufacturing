@@ -64,6 +64,60 @@ class MinimaxTree():
                         best_value = v
                 best_value = (best_value[0], best_value[1])
                 return best_value
+
+    def alphabeta(agent, sample_space, affinity, depth_limit, maxi, alpha, beta, this_move=None): 
+        
+        # get the viable moves after the node made at this node is made
+        possible_moves = sample_space.viable_moves
+
+        # if we are at a leaf node, return the heuristic value of the node,
+        # otherwise, run the search on its children
+        if depth_limit == 0: return (this_move, MinimaxNode.h(Gomoku(sample_space), affinity, this_move[0], this_move[1]), 0)
+        else: 
+
+            # get the relavent data for the next level
+            if affinity == RED_TILE(): next_affinity = BLUE_TILE()
+            else: next_affinity = RED_TILE()
+
+            #Either maximize or minimize based on the level, and recurse
+            if maxi is True:
+                MinimaxTree.sort(possible_moves, sample_space, affinity, False)
+                v = (None,-10000, 0)
+                for move in possible_moves:
+                    agent.nodes_expanded += 1
+                    v = (move, max(v[1], MinimaxTree.alphabeta(agent, Gomoku(sample_space), next_affinity, depth_limit-1, False, alpha, beta, move)[1]))
+                    alpha = max(alpha, v[1])
+                    if beta <= alpha: break 
+                print('max:'+str(v[1]))
+                return v
+            else:
+                MinimaxTree.sort(possible_moves, sample_space, affinity, True)
+                v = (None,10001, 0)
+                for move in possible_moves:
+                    agent.nodes_expanded += 1
+                    v = (move, min(v[1], MinimaxTree.alphabeta(agent, Gomoku(sample_space), next_affinity, depth_limit-1, True, alpha, beta, move)[1]))
+                    beta = min(beta, v[1])
+                    if beta <= alpha: break 
+                print('min:'+str(v[1]))
+                return v
+
+    # credit @ https://stackoverflow.com/questions/18168408/sorting-a-list-from-least-to-greatest-without-list-sort
+    def sort(my_list, sample_space, affinity, max):
+        size = len(my_list)
+        for i in range(size):
+            for j in range(size-i-1):
+                if(max):
+                    if(MinimaxNode.h(sample_space, affinity, my_list[j][0], my_list[j][1]) < \
+                        MinimaxNode.h(sample_space, affinity, my_list[j+1][0], my_list[j][1])):
+                        tmp = my_list[j]
+                        my_list[j] = my_list[j+1]
+                        my_list[j+1] = tmp
+                else:
+                    if(MinimaxNode.h(sample_space, affinity, my_list[j][0], my_list[j][1]) > \
+                        MinimaxNode.h(sample_space, affinity, my_list[j+1][0], my_list[j][1])):
+                        tmp = my_list[j]
+                        my_list[j] = my_list[j+1]
+                        my_list[j+1] = tmp
     
 class MinimaxNode(object):
 
@@ -96,11 +150,14 @@ class MinimaxNode(object):
         score = 0
 
         for block in blocks:
+            print(block.tiles)
             if block in sample_space.active_blocks:
                 possible_blocks.append(block)
 
         # Evaluate all winning blocks
         for block in possible_blocks:
+            
+
             # get essential info
             if affinity == RED_TILE(): eval_list = block.red
             elif affinity == BLUE_TILE(): eval_list = block.blue

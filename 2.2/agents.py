@@ -316,7 +316,6 @@ class Reflex(Agent):
 
             # find the best block to place a stone in
             for block in best_blocks:
-                print(block.tiles)
                 if best_block is None: best_block = block 
                 elif block.tiles[0][0] <= best_block.tiles[0][0]: 
                     if (block.tiles[0][1] != block.tiles[1][1]):
@@ -432,18 +431,55 @@ class MiniMax(Agent):
 
     def play_full_game(self): pass
         
-'''class AlphaBeta(Agent):
-    def __init__(self, tile_type, game_space, search_depth):
-        super().__init__(self, tile_type, game_space)
+class AlphaBeta(Agent):
+
+    def __init__(self, affinity, game_type, game_space, search_depth, opponent=None):
+        """ 
+        __init__(tile_type, game_type, game_space, int, Agent) -> MiniMax
+
+        Initializes an alpha-beta agent which inherits from the generic Agent.
+        
+        Keyword arguments:
+        affinity        -- the affinity of this agent
+        game_type       -- the Type of the game being played
+        game_space      -- the game being played
+        search_depth    -- the depth to run the minimax search to
+        opponent        -- the agent this agent is playing against
+
+        Return a AlphaBeta object.
+        """
+
+        super().__init__(affinity, game_type, game_space, opponent)
         self.__search_depth = search_depth
-       
-class Block(object):
-    def __init__(self):
-        for tile in tiles:
-            self.__tiles.append(tile)
-            if tile.get_tile_type == tile_type:
-                self.__num_occupied += 1
-'''
+        self.nodes_expanded = 0
+
+    def __str__(self): pass
+
+    def make_move(self): 
+        """ 
+        make_move() -> None
+
+        Makes a move for the alpha-beta agent. Runs a search to the
+        proper depth and prints the number of nodes expanded. Also
+        picks the best move to make based on the search.
+        """
+
+        # get relavent information
+        affinity = self.get_affinity()
+        sample_space = self.get_game_space()
+        depth_limit = self.__search_depth
+
+        # run a minimax search and get the best value
+        bestval = MinimaxTree.alphabeta(self, sample_space, affinity, depth_limit, -10000, 10001, True)
+        if bestval[0] is None: bestval = ((0,6),'x', 0)
+
+        # print the number of nodes expanded 
+        print(self.nodes_expanded)
+
+        # make the move found by the search 
+        self.get_game_space().set_tile(bestval[0][0], bestval[0][1], affinity)
+    
+    def play_full_game(self): pass
 
 """ Code below here is to be exclusively used for 
 testing the Agent class and its subclasses.
@@ -454,8 +490,9 @@ if __name__ == '__main__':
     #blue_reflex = Reflex(BLUE_TILE(), Gomoku, new_game)
     #red_reflex = Reflex(RED_TILE(), Gomoku, new_game, blue_reflex)
     
-    blue_minimax = MiniMax(BLUE_TILE(), Gomoku, new_game, 3)
-    red_reflex =  Reflex(RED_TILE(), Gomoku, new_game, blue_minimax)
+    blue_alphabeta = AlphaBeta(BLUE_TILE(), Gomoku, new_game, 3)
+    #blue_minimax = MiniMax(BLUE_TILE(), Gomoku, new_game, 3)
+    red_reflex =  Reflex(RED_TILE(), Gomoku, new_game, blue_alphabeta)
 
     # make the first two assigned moves
     #new_game.set_tile(1,5,RED_TILE())
@@ -477,6 +514,7 @@ if __name__ == '__main__':
         else: 
             x = input('Make an input to step forward')
             #blue_reflex.make_move()
-            blue_minimax.make_move()
+            #blue_minimax.make_move()
+            blue_alphabeta.make_move()
         new_game.print_board()
         print('\n')
