@@ -1,5 +1,6 @@
 from abc import ABCMeta, abstractmethod
 from gomoku import Gomoku
+from minimax import MinimaxTree
 from constants import *
 
 """ 
@@ -27,7 +28,6 @@ class Agent(metaclass=ABCMeta):
 
     @abstractmethod 
     def __str__(self): pass
-        #print num expanded and type of agent
     
     @abstractmethod
     def make_move(self): pass
@@ -46,7 +46,22 @@ class Agent(metaclass=ABCMeta):
 
 
 class Reflex(Agent):
+
     def __init__(self, affinity, game_type, game_space, opponent=None):
+        """ 
+        __init__(tile_type, game_type, game_space, Agent) -> Reflex
+
+        Initialises a new Reflex agent, inheriting from a generic Agent.
+
+        Keyword arguments:
+        affinity    -- the affinity of this agent
+        game_type   -- the Type of the game being played
+        game_space  -- the game being played
+        opponent    -- the agent this agent is playing against
+
+        Return a Reflex object.
+        """
+        
         super().__init__(affinity, game_type, game_space, opponent)
 
     def __str__(self):
@@ -54,14 +69,29 @@ class Reflex(Agent):
 
     def play_full_game(self): pass
 
-
     def make_move(self):
+        """ 
+        make_move() -> int
+
+        Makes a move for the reflex agent based on a set
+        of rules. 
+
+        Returns -1 if blue wins;
+        returns 1 if red wins;
+        returns 0 if noone wins. 
+        """
 
         # If the agent is starting a game, make an 
         # initial move
         if self.get_play_status() == False: 
             self.initial_move()
             return
+
+        # for speeds sake, allow the reflex agent to respond to manual
+        # input. comment out for automatic running.
+        x = int(input('hotwire x:'))
+        y = int(input('hotwire y:'))
+        return self.get_game_space().set_tile(x,y,self.get_affinity())
 
         # Check wheather the the agent side is going to 
         # win by making one move, make the move
@@ -77,13 +107,20 @@ class Reflex(Agent):
             return self.get_game_space().set_tile(x,y,self.get_affinity())
 
     def initial_move(self):
+        """ 
+        initial_move() 
+
+        Makes the first move for the agent. 
+
+        Returns nothing.
+        """
 
         # Make the first move based on the game we
         # are currently playing, otherwise return
         if isinstance(self.get_game_space(), Gomoku):
 
             # play one stone in the bottom left-hand corner
-            self.get_game_space().set_tile(6,0,self.get_affinity())
+            self.get_game_space().set_tile(0,6,self.get_affinity())
 
             # the agents are now in play 
             self.set_play_status(True)
@@ -109,8 +146,10 @@ class Reflex(Agent):
         # pick the right check for the game we are playing
         if isinstance(board, Gomoku):
             
+            # get the possible ways to win
             possible_wins = board.get_wins(affinity)
             
+            # if we can win, pick a good win 
             if len(possible_wins) == 1: return possible_wins[0]
             elif len(possible_wins) > 1:
                 best_win = None
@@ -133,19 +172,26 @@ class Reflex(Agent):
             else: return None
 
     def counter_opponent_win(self):
+        """ 
+        counter_opponent_win() -> None
+        
+        Check if the opponent is about to win, and if 
+        so, counter that move which they will make.
+        """
 
-         # get essential values
+        # get essential values
         board = self.get_game_space()
         affinity = self.get_opponent().get_affinity()
         
         # pick the right check for the game we are playing
         if isinstance(board, Gomoku):
             
+            # get the possible ways for the opponent to win
             possible_wins = board.get_wins(affinity)
-            for win in possible_wins:
-                print('possible win:'+str(win))
             winning_blocks = board.get_winning_blocks(affinity)
             best_move = None
+
+            # sort the best win to counter 
             for win in possible_wins:
                 if best_move is None: best_move = win
                 elif win[0] <= best_move[0]: 
@@ -154,46 +200,14 @@ class Reflex(Agent):
             if best_move is not None: possible_wins.remove(best_move)
             return best_move
 
-            '''for block in winning_blocks[win]:
-                    first = block.tiles[0]
-                    last = block.tiles[len(block.tiles)-1]
-                    if block.direction == 'horizontal':
-                        x = first[0] - 1
-                        y = first[1]
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                        x = last[0] + 1
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                    elif block.direction == 'vertical':
-                        x = first[0] 
-                        y = last[1] + 1
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                        y = first[1] - 1
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                    elif block.direction == 'diagonal(\)':
-                        x = first[0] - 1
-                        y = first[1] - 1
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                        x = last[0] + 1
-                        y = last[1] + 1
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                    elif block.direction == 'diagonal(/)':
-                        x = first[0] - 1
-                        y = first[1] + 1
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                        x = last[0] + 1
-                        y = last[1] - 1
-                        if board.get_tile(x,y) == BLANK_TILE():
-                            return (x,y)
-                    else: return None'''
-
     def counter_opponent_adv(self):
+        """ 
+        counter_opponent_adv() -> None
+        
+        Check if the opponent has a very adventageous
+        move, i.e., a row of three tiles with no blockage
+        on either end. Counter this.
+        """
 
         # get essential values
         board = self.get_game_space()
@@ -203,12 +217,12 @@ class Reflex(Agent):
         # pick the right check for the game we are playing
         if isinstance(board, Gomoku):
 
+            # get advantageous blocks
             blocks_advn = board.get_adv_blocks(opaffinity)
-            for block in blocks_advn:
-                print('advantageous block:'+str(block.tiles))
             best_moves = []
             best_move = None
 
+            # sort the blocks which may be countered
             for block in blocks_advn:
                 if block.direction == 'horizontal':
                     x1 = block.tiles[0][0] - 1
@@ -247,6 +261,7 @@ class Reflex(Agent):
                     board.get_tile(x2,y2) == BLANK_TILE():
                         best_moves.append((x1,y1))
 
+            # pick the best move in the best block to counter
             for move in best_moves:
                 print('considered advantageous move:'+str(move))
                 if best_move is None: best_move = move 
@@ -260,6 +275,14 @@ class Reflex(Agent):
             return best_move 
 
     def best_last_option(self): 
+        """ 
+        best_last_option() -> None
+        
+        Pick a move for the agent to make which is the best 
+        based on a set of understood conditions. The best
+        move is the most-left, most-low move in the block
+        containing the most tiles of the same affinity.
+        """
         
         # get essential values
         board = self.get_game_space()
@@ -268,11 +291,13 @@ class Reflex(Agent):
         # pick the right check for the game we are playing
         if isinstance(board, Gomoku):
             
+            # get all possible blocks to make a move in
             winning_blocks = board.get_winning_blocks(affinity)
             print('total winning blocks:'+str(len(winning_blocks)))
             best_blocks = []
             best_block = None
 
+            # find the largest blocks to place a stone in
             for block in winning_blocks:
                 if affinity == BLUE_TILE():
                     if len(best_blocks) == 0: best_blocks.append(block)
@@ -289,6 +314,7 @@ class Reflex(Agent):
                     elif len(block.red) == len(best_blocks[0].red):
                         best_blocks.append(block)
 
+            # find the best block to place a stone in
             for block in best_blocks:
                 print(block.tiles)
                 if best_block is None: best_block = block 
@@ -325,7 +351,8 @@ class Reflex(Agent):
                                         print('considered block:'+str(block.tiles))
                                         best_block = block       
 
-            print('best block:'+str(best_block.tiles))
+            # find the best move to make out of the best block 
+            # print('best block:'+str(best_block.tiles))
             best_move = (7,-1)
             for tile_i in range(len(best_block.tiles)):
                 tile = best_block.tiles[tile_i]
@@ -356,16 +383,54 @@ class Reflex(Agent):
             return best_move
 
 class MiniMax(Agent):
-    def __init__(self, tile_type, game_space, search_depth):
-        super().__init__(self, tile_type, game_space)
+
+    def __init__(self, affinity, game_type, game_space, search_depth, opponent=None):
+        """ 
+        __init__(tile_type, game_type, game_space, int, Agent) -> MiniMax
+
+        Initializes a minimax agent which inherits from the generic Agent.
+        
+        Keyword arguments:
+        affinity        -- the affinity of this agent
+        game_type       -- the Type of the game being played
+        game_space      -- the game being played
+        search_depth    -- the depth to run the minimax search to
+        opponent        -- the agent this agent is playing against
+
+        Return a Minimax object.
+        """
+
+        super().__init__(affinity, game_type, game_space, opponent)
         self.__search_depth = search_depth
+        self.nodes_expanded = 0
 
-    def make_move(): pass
+    def __str__(self): pass
 
-    def minimax(node, depth, maxer):
-        
-        
-    
+    def make_move(self): 
+        """ 
+        make_move() -> None
+
+        Makes a move for the minimax agent. Runs a search to the
+        proper depth and prints the number of nodes expanded. Also
+        picks the best move to make based on the search.
+        """
+
+        # get relavent information
+        affinity = self.get_affinity()
+        sample_space = self.get_game_space()
+        depth_limit = self.__search_depth
+
+        # run a minimax search and get the best value
+        bestval = MinimaxTree.minimax(self, sample_space, affinity, depth_limit, True)
+        if bestval[0] is None: bestval = ((0,6),'x', 0)
+
+        # print the number of nodes expanded 
+        print(self.nodes_expanded)
+
+        # make the move found by the search 
+        self.get_game_space().set_tile(bestval[0][0], bestval[0][1], affinity)
+
+    def play_full_game(self): pass
         
 '''class AlphaBeta(Agent):
     def __init__(self, tile_type, game_space, search_depth):
@@ -386,18 +451,21 @@ testing the Agent class and its subclasses.
 if __name__ == '__main__': 
     new_game = Gomoku(7,7)
 
-    blue_reflex = Reflex(BLUE_TILE(), Gomoku, new_game)
-    red_reflex = Reflex(RED_TILE(), Gomoku, new_game, blue_reflex)
+    #blue_reflex = Reflex(BLUE_TILE(), Gomoku, new_game)
+    #red_reflex = Reflex(RED_TILE(), Gomoku, new_game, blue_reflex)
     
+    blue_minimax = MiniMax(BLUE_TILE(), Gomoku, new_game, 3)
+    red_reflex =  Reflex(RED_TILE(), Gomoku, new_game, blue_minimax)
+
     # make the first two assigned moves
-    new_game.set_tile(1,5,RED_TILE())
-    new_game.print_board()
-    print('\n')
-    new_game.set_tile(5,1,BLUE_TILE())
-    new_game.print_board()
-    print('\n')
-    blue_reflex.set_play_status(True)
-    red_reflex.set_play_status(True)
+    #new_game.set_tile(1,5,RED_TILE())
+    #new_game.print_board()
+    #print('\n')
+    #new_game.set_tile(5,1,BLUE_TILE())
+    #new_game.print_board()
+    #print('\n')
+    #blue_reflex.set_play_status(True)
+    #red_reflex.set_play_status(True)
 
     # play a full game
     win_status = 0
@@ -408,6 +476,7 @@ if __name__ == '__main__':
         if win_status != 0: break 
         else: 
             x = input('Make an input to step forward')
-            blue_reflex.make_move()
+            #blue_reflex.make_move()
+            blue_minimax.make_move()
         new_game.print_board()
         print('\n')

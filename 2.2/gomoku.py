@@ -32,50 +32,87 @@ class Gomoku(object):
         # if instance is of Gomoku class, make a copy
         if isinstance(arg, self.__class__):
             self.__dict__ = deepcopy(arg.__dict__)
+
         # otherwise define a new object 
         else:
+
+            # general board information
             self.__board_space = [[Tile() for x in range(arg)] for y in range(h)]
+            self.__blanks = h*arg
+            self.__width = arg
+            self.__height = h
+
+            # information for printing to console
             self.__print_space = [['.' for x in range(arg)] for y in range(h)]
             self.blue_chars = ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z']
             self.red_chars = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
             self.cur_char_red = 0
             self.cur_char_blue = 0
-            self.__blanks = h*arg
-            self.__width = arg
-            self.__height = h
+            
+            # blocks (5-long tile sets) and adv_blocks (3-long tile
+            # sets which are also completely full of the same color
+            # tile)
             self.__blocks = self.generate_blocks(WINNING_ROW_SIZE())
             self.__adv_blocks = self.generate_blocks(3)
             self.__adv_blocks_red = []
             self.__adv_blocks_blue = []
+
+            # generate list of blank tiles and blocks
+            # which may be uesd to win the game for red and
+            # blue
+            self.__blank_tiles = []
             self.__winning_blocks_blue = []
             self.__winning_blocks_red = []
             for tile in self.__blocks.keys():
+                self.__blank_tiles.append(tile)
                 for block in self.__blocks[tile]:
                     if block not in self.__winning_blocks_blue:
                         self.__winning_blocks_blue.append(block)
                     if block not in self.__winning_blocks_red:
                         self.__winning_blocks_red.append(block)
+
+            # moves which would win the game
             self.__wins_red = []
             self.__wins_blue = []
 
+            # blocks which are being used in play and moves
+            # which should be considered by the minimax and alpha
+            # beta searches. This minimizes the state space and 
+            # speeds up runtime 
+            self.active_blocks = []
+            self.viable_moves = []
+
+    # This set of getter functions returns valid information
+    # for a given tile type or a given tile 
+    def get_blocks(self, tile): return self.__blocks[tile]
     def get_adv_blocks(self, affinity):
         if affinity == RED_TILE(): return self.__adv_blocks_red
         elif affinity == BLUE_TILE(): return self.__adv_blocks_blue
         else: return None
-
     def get_winning_blocks(self, affinity):
         if affinity == RED_TILE(): 
             return self.__winning_blocks_red
         elif affinity == BLUE_TILE(): 
             return self.__winning_blocks_blue
         else: return None
-    
     def get_wins(self, affinity):
         if affinity == RED_TILE(): return self.__wins_red
         elif affinity == BLUE_TILE(): return self.__wins_blue
         else: return None
+    def get_blanks(self): return self.__blank_tiles
 
     def generate_blocks(self, size):
+        """ 
+        generate_blocks(int) -> [blocks]
+
+        Generates all possible blocks of length size
+        in the Gomoku board.
+
+        Keyword arguments:
+        size -- the size of the block to generate
+
+        Return an array of blocks present in the board.
+        """
 
         # create the blocks map
         blocks = {}
@@ -178,12 +215,41 @@ class Gomoku(object):
         return blocks 
 
     def update_blocks(self, x, y, affinity):
+        """ 
+        update_blocks(int, int, tile_type) -> None
+
+        Updates all the blocks in the Gomoku board 
+        affected by the move made to tile (x,y)
+
+        Keyword arguments:
+        x        -- the x coordinate of a move being made
+        y        -- the y coordinate of a move being made 
+        affinity -- the tile_type of a move being made
+
+        Return nothing. 
+        """
+
+        # for every block in the board associated 
+        # with the tile (x,y)
         for block in self.__blocks[(x,y)]:
+
+            # record the block as being used if it has
+            # not been prior
+            if block not in self.active_blocks: 
+                self.active_blocks.append(block)
+            
+            # if we are placing a red tile
             if affinity == RED_TILE():
+
+                # remove this block from the possible wins for blue
                 if block in self.__winning_blocks_blue:
                     self.__winning_blocks_blue.remove(block)
+
+                # update the tile info associated with the block
                 block.red.append((x,y))
                 block.blank.remove((x,y))
+
+                # save this block as a possible win if it sets us up for one
                 if len(block.blank) == 1 and len(block.red) == WINNING_ROW_SIZE() - 1:
                     l = len(block.tiles) - 1
                     xw1 = block.tiles[0][0]
@@ -191,14 +257,20 @@ class Gomoku(object):
                     xw2 = block.tiles[l][0]
                     yw2 = block.tiles[l][1]
                     if self.get_tile(xw1,yw1) == BLANK_TILE() or self.get_tile(xw2,yw2) == BLANK_TILE():
-                        print('win block:'+str(block.tiles))
-                        print('added possible win:'+str(block.blank[0]))
                         self.__wins_red.append(block.blank[0]) 
+            
+            # if we are placing a blue tile
             elif affinity == BLUE_TILE():
+
+                # remove this block from the possible wins for red
                 if block in self.__winning_blocks_red:
                     self.__winning_blocks_red.remove(block)
+
+                # update the tile info associated with the block
                 block.blue.append((x,y))
                 block.blank.remove((x,y))
+
+                # save this block as a possible win if it sets us up for one
                 if len(block.blank) == 1 and len(block.blue) == WINNING_ROW_SIZE() - 1:
                     l = len(block.tiles) - 1
                     xw1 = block.tiles[0][0]
@@ -206,35 +278,45 @@ class Gomoku(object):
                     xw2 = block.tiles[l][0]
                     yw2 = block.tiles[l][1]
                     if self.get_tile(xw1,yw1) == BLANK_TILE() or self.get_tile(xw2,yw2) == BLANK_TILE():
-                        print('win block:'+str(block.tiles))
-                        print('added possible win:'+str(block.blank[0]))
                         self.__wins_blue.append(block.blank[0])
+
+            # otherwise do nothing as we cannot remove a tile
             elif affinity == BLANK_TILE():
                 print('cannot remove a tile')
-            #print('Tile Accessed: ' + str((x,y)))
-            #print('Block altered: ' + str(block.tiles))
-            #print('Block direction: ' + block.direction)
-            #print('Reds: ' + str(block.red))
-            #print('Blues: ' + str(block.blue))
-            #print('Blanks: ' + str(block.blank))
-            #print('\n')
 
     def update_adv_blocks(self, x, y, affinity):
-        
-        blocks = self.__adv_blocks[(x,y)]
-        for block in blocks:
-            #print(block.tiles)
+        """ 
+        update_adv_blocks(int, int, tile_type) -> None
+
+        Updates all the advantageous blocks in the 
+        Gomoku board affected by the move made to 
+        tile (x,y) 
+
+        Keyword arguments:
+        x        -- the x coordinate of a move being made
+        y        -- the y coordinate of a move being made 
+        affinity -- the tile_type of a move being made
+
+        Return nothing. 
+        """
+
+        # for every block in the board associated 
+        # with the tile (x,y)
+        for block in self.__adv_blocks[(x,y)]:
+
+            # update the tile info associated with the block
             block.blank.remove((x,y)) 
+
+            # if we are placing a red tile
             if affinity == RED_TILE(): 
                 block.red.append((x,y))
                 if len(block.red) == 3:
-                    print('added adventageous block red: '+str(block.tiles))
                     self.__adv_blocks_red.append(block)
 
+            # if we are placing a blue tile
             elif affinity == BLUE_TILE(): 
                 block.blue.append((x,y))
                 if len(block.blue) == 3:
-                    print('added adventageous block blue: '+str(block.tiles))
                     self.__adv_blocks_blue.append(block)
             
             else: print('cannot remove a tile')
@@ -259,16 +341,42 @@ class Gomoku(object):
         """
 
         # check if we are accessing within range
+        if self.get_tile(x,y) != BLANK_TILE():
+            print('Tile occupied: override values')
+            x = int(input('enter a default x:'))
+            y = int(input('enter a default y:'))
+            if y < 0: return 0
         if x >= self.__width or x < WIDTH_MIN():
             print('Attempt to access invalid x coordinate; tile not set.')
-            return 0
+            x = int(input('enter a default x:'))
+            y = int(input('enter a default y:'))
+            if x < 0: return 0
         elif y >= self.__height or y < HEIGHT_MIN():
             print('Attempt to access invalid y coordinate; tile not set.')
-            return 0
+            x = int(input('enter a default x:'))
+            y = int(input('enter a default y:'))
+            if y < 0: return 0
+
+        # add viable moves for minimax; viable moves are all tiles surrounding
+        # the tile
+        if (x,y) in self.viable_moves: self.viable_moves.remove((x,y))
+        viable_blue = False
+        viable_red = False
+        moves_to_add = [(x-1,y),(x+1,y),(x-1,y-1),(x-1,y+1),(x+1,y-1),(x+1,y+1),(x,y+1),(x,y-1)]
+        for move in moves_to_add:
+            if move[0] >= 0 and move[0] < 7 and move[1] >= 0 and move[1] < 7:
+                if move not in self.viable_moves and self.get_tile(move[0],move[1]) == BLANK_TILE():
+                    for block in self.get_winning_blocks(RED_TILE()):
+                        if move in block.tiles: viable_red = True 
+                    for block in self.get_winning_blocks(BLUE_TILE()):
+                        if move in block.tiles: viable_blue = True
+                    if viable_red is True and viable_blue is True:  
+                        self.viable_moves.append(move)
 
         # Adjust the type of tile, decriment the blanks counter, and 
         # remove from the list of remaining possible moves
         if self.__board_space[x][y].change_type(tile_type) == 0: return 0
+        self.__blank_tiles.remove((x,y))
         if tile_type == RED_TILE(): 
             self.__print_space[x][y] = self.red_chars[self.cur_char_red]
             self.cur_char_red += 1
@@ -278,7 +386,6 @@ class Gomoku(object):
         self.__blanks -= 1
         self.update_blocks(x,y,tile_type)
         self.update_adv_blocks(x,y,tile_type)
-        #self.__moves.remove(x,y)
 
         # Gather the neighbors of the tile
         neighbors = {}
@@ -419,7 +526,7 @@ class Tile(object):
         # Check if the tile is currently occupied
         if self.__tile_type != BLANK_TILE():
             print('Cant change an occupied tile; tile not set.')
-            return 0
+            if y < 0: return 0
 
         # Set the new tile type if it is valid, otherwise fail
         if tile_type in TILE_TYPES():
