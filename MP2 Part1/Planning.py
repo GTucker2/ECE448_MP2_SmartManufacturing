@@ -43,8 +43,12 @@ def search_smallest_stops(graph, start, end):
     # and check for the goal. If at the goal, copy the successful
     # path to the array of mazedata and then return 1. Else,
     # expand the node to the queue. 
+    prev = None
     while not q.empty():       
         cur = q.get() 
+        if prev == cur:
+            prev = cur
+            cur = q.get()
         nodes_expanded = nodes_expanded + 1
         end[1].add_comp(cur)
         end[2].add_comp(cur)
@@ -62,7 +66,8 @@ def search_smallest_stops(graph, start, end):
             if next not in curr_cost or update_cost < curr_cost[next]:
                 curr_cost[next] = update_cost
             prior = curr_cost[next] + stop_hist(end,next,5)
-            q.put(next, prior)          
+            q.put(next, prior)       
+        prev = cur
         
     # Return the failed because solution was not found
     solution = 'FAILED: ' + solution
@@ -92,6 +97,9 @@ def search_shortest_dist(graph, start, end):
     prev = None
     while not q.empty():       
         cur = q.get() 
+        if prev == cur:
+            prev = cur
+            cur = q.get()
         nodes_expanded = nodes_expanded + 1
         end[1].add_comp(cur)
         end[2].add_comp(cur)
@@ -137,9 +145,9 @@ def stop_hist(comps,next_comp, n):
             else:
                 count = count + temp_str.count(next_comp) 
         else:
-            total_num = total_num - n
-    num_appear = total_num - count
-    return total_num-count
+            total_num = total_num - len(comps[i].needed)
+    num_appear = abs(total_num - count)
+    return num_appear
 
 #histogram to find the shortest distance to a widget
 #param:  dist     : list of distances to other components
